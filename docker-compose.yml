@@ -1,0 +1,105 @@
+version: '3.7'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+    redis:
+        image: redis:5.0.5
+
+    flower:
+        image: flower:latest
+        build:
+          context: .
+        restart: always
+        depends_on:
+            - redis
+        environment:
+            - EXECUTOR=Celery
+        ports:
+            - "5555:5555"
+        command: flower
+
+    webserver:
+        image: webserver:latest
+        build:
+          context: .
+        restart: always
+        depends_on:
+            - postgres
+            - redis
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            - PYTHONPATH=/usr/local/airflow
+        env_file:
+          - env.list
+        volumes:
+            - ./airflow/dags:/usr/local/airflow/dags
+            - ./scripts:/usr/local/airflow/scripts
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    scheduler:
+        image: scheduler:latest
+        build:
+          context: .
+        restart: always
+        depends_on:
+            - webserver
+        volumes:
+            - ./airflow/dags:/usr/local/airflow/dags
+            - ./scripts:/usr/local/airflow/scripts
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            - PYTHONPATH=/usr/local/airflow
+        command: scheduler
+        env_file:
+          - env.list
+
+    worker1:
+        image: worker1:latest
+        build:
+          context: .
+        restart: always
+        depends_on:
+            - scheduler
+        volumes:
+            - ./airflow/dags:/usr/local/airflow/dags
+            - ./scripts:/usr/local/airflow/scripts
+        environment:
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            - PYTHONPATH=/usr/local/airflow
+        command: worker
+        env_file:
+          - env.list
+
+    worker2:
+        image: worker2:latest
+        build:
+          context: .
+        restart: always
+        depends_on:
+            - scheduler
+        volumes:
+            - ./airflow/dags:/usr/local/airflow/dags
+            - ./scripts:/usr/local/airflow/scripts
+        environment:
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+            - PYTHONPATH=/usr/local/airflow
+        command: worker
+        env_file:
+          - env.list

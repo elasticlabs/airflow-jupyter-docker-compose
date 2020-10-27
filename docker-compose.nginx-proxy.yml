@@ -38,7 +38,7 @@ services:
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
       # HTTPS settings for nginx-proxy with letsencrypt companion
-      - VIRTUAL_HOST=airflow.elasticlabs.co/airflow
+      - VIRTUAL_HOST=airflow.elasticlabs.co
       - VIRTUAL_PORT=8080
     env_file:
       - ./airflow/.env

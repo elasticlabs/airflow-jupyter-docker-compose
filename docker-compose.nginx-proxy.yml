@@ -180,5 +180,5 @@ volumes:
 networks:
   airflow-proxy:
     external:
-      name: airflow
+      name: airflow-proxy
   airflow:

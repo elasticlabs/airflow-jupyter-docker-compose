@@ -1,0 +1,161 @@
+version: '3.7'
+services:
+  webserver:
+    image: ${COMPOSE_PROJECT_NAME}_webserver:latest
+    container_name: airflow4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    expose:
+      - "8080"
+    environment:
+      - LOAD_EX=n
+      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+      - EXECUTOR=Celery
+      - PYTHONPATH=/usr/local/airflow
+      - VIRTUAL_HOST=airflow.elasticlabs.co
+      - VIRTUAL_PORT=8080
+    env_file:
+      - env.list
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags
+      - ./scripts:/usr/local/airflow/scripts
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - airflow
+
+  flower:
+    image: ${COMPOSE_PROJECT_NAME}_flower:latest
+    container_name: flower4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      - EXECUTOR=Celery
+      - VIRTUAL_HOST=flower.airflow.elasticlabs.co
+      - VIRTUAL_PORT=5555
+    expose:
+      - "5555"
+    command: flower
+    networks:
+      - airflow
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    container_name: pgadmin4${COMPOSE_PROJECT_NAME}
+    expose: 
+      - "80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - '/tmp/servers.json:/servers.json'
+    environment:
+      - VIRTUAL_HOST=pgadmin.airflow.elasticlabs.co
+      - VIRTUAL_PORT=80
+    env_file:
+      - ./postgis/pgadmin.env
+    networks:
+      - airflow
+          
+  scheduler:
+    image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
+    container_name: scheduler4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    restart: always
+    depends_on:
+      - webserver
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags
+      - ./scripts:/usr/local/airflow/scripts
+    environment:
+      - LOAD_EX=n
+      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+      - EXECUTOR=Celery
+      - PYTHONPATH=/usr/local/airflow
+    command: scheduler
+    env_file:
+      - env.list
+    networks:
+      - airflow
+
+  worker1:
+    image: ${COMPOSE_PROJECT_NAME}_worker1:latest
+    container_name: worker_a4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    restart: always
+    depends_on:
+      - scheduler
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags
+      - ./scripts:/usr/local/airflow/scripts
+    environment:
+      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+      - EXECUTOR=Celery
+      - PYTHONPATH=/usr/local/airflow
+    command: worker
+    env_file:
+      - env.list
+    networks:
+      - airflow
+
+  worker2:
+    image: ${COMPOSE_PROJECT_NAME}_worker2:latest
+    container_name: worker_b4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    restart: always
+    depends_on:
+      - scheduler
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags
+      - ./scripts:/usr/local/airflow/scripts
+    environment:
+      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+      - EXECUTOR=Celery
+      - PYTHONPATH=/usr/local/airflow
+    command: worker
+    env_file:
+      - env.list
+    networks:
+      - airflow 
+     
+  postgres:
+    image: postgres:9.6
+    container_name: postgres4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - airflow
+
+  redis:
+    image: redis:5.0.5
+    container_name: redis4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    networks:
+      - airflow
+
+volumes:
+  pgadmin_data:
+
+networks:
+  airflow: 

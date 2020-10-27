@@ -94,7 +94,7 @@ services:
       context: ./airflow
     restart: always
     depends_on:
-      - webserver
+      - airflow-proxy
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts

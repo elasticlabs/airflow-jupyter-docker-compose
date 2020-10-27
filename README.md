@@ -10,8 +10,8 @@ This software stack comes with 2 compose file versions :
 
 ## Commands to deploy and manage the stack behid an HTTPS automated proxy: 
 * Ensure that appropriate DNS records are created and resolve well. The following 3 subdomains are needed
-* Create the `airflow` network -> `sudo docker network create airflow`
-* Attach the new network to the existing `nginx-proxy` container to ensure proper proxy operations -> `sudo docker network connect airflow <nginx-proxy container name>`
+* Create the `airflow` network -> `sudo docker network create airflow-proxy`
+* Attach the new network to the existing `nginx-proxy` container to ensure proper proxy operations -> `sudo docker network connect airflow-proxy <nginx-proxy container name>`
 * Bring up the whole stack ->  `sudo docker-compose -f docker-compose.nginx-proxy.yml up -d --build`
 
 ## Stack management

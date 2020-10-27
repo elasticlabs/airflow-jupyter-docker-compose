@@ -1,13 +1,29 @@
 version: '3.7'
 services:
-  webserver:
+  airflow-proxy:
+    image: ${COMPOSE_PROJECT_NAME}_airflow-proxy:latest
+    container_name: airflow-proxy4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    build:
+      context: ./proxy
+    environment:
+      - DHPARAM_GENERATION=false
+      - VIRTUAL_HOST=airflow.elasticlabs.co
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=airflow.elasticlabs.co
+      - LETSENCRYPT_EMAIL=patrice.mauny@gmail.com
+    networks:
+      - airflow-proxy
+      - airflow
+
+  airflow:
     image: ${COMPOSE_PROJECT_NAME}_webserver:latest
     container_name: airflow4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     build:
       context: ./airflow
-    restart: always
     depends_on:
+      - airflow-proxy
       - postgres
       - redis
     expose:
@@ -18,9 +34,7 @@ services:
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
       # HTTPS settings for nginx-proxy with letsencrypt companion
-      - DHPARAM_GENERATION=false
-      - LETSENCRYPT_HOST=airflow.elasticlabs.co
-      - VIRTUAL_HOST=airflow.elasticlabs.co
+      - VIRTUAL_HOST=airflow.elasticlabs.co/airflow
       - VIRTUAL_PORT=8080
     env_file:
       - ./airflow/.env
@@ -47,10 +61,7 @@ services:
       - redis
     environment:
       - EXECUTOR=Celery
-      # HTTPS settings for nginx-proxy with letsencrypt companion
-      - DHPARAM_GENERATION=false
-      - LETSENCRYPT_HOST=flower.airflow.elasticlabs.co
-      - VIRTUAL_HOST=flower.airflow.elasticlabs.co
+      - VIRTUAL_HOST=airflow.elasticlabs.co/flower
       - VIRTUAL_PORT=5555
     expose:
       - "5555"
@@ -68,7 +79,7 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - '/tmp/servers.json:/servers.json'
     environment:
-      - VIRTUAL_HOST=pgadmin.airflow.elasticlabs.co
+      - VIRTUAL_HOST=airflow.elasticlabs.co/pgadmin
       - VIRTUAL_PORT=80
     env_file:
       - ./airflow/pgadmin.env
@@ -167,6 +178,7 @@ volumes:
 # to your nginx-proxy container for proper docker-gen containers detections, 
 # and further SSL certificates creation.
 networks:
-  airflow:
+  airflow-proxy:
     external:
       name: airflow
+  airflow:

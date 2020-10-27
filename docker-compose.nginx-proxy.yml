@@ -65,8 +65,6 @@ services:
       - redis
     environment:
       - EXECUTOR=Celery
-      - VIRTUAL_HOST=airflow.elasticlabs.co/flower
-      - VIRTUAL_PORT=5555
     expose:
       - "5555"
     command: flower
@@ -82,9 +80,6 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - '/tmp/servers.json:/servers.json'
-    environment:
-      - VIRTUAL_HOST=airflow.elasticlabs.co/pgadmin
-      - VIRTUAL_PORT=80
     env_file:
       - ./airflow/pgadmin.env
     networks:

@@ -20,7 +20,7 @@ services:
       - VIRTUAL_HOST=airflow.elasticlabs.co
       - VIRTUAL_PORT=8080
     env_file:
-      - env.list
+      - ./airflow/.env
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
@@ -88,7 +88,7 @@ services:
       - PYTHONPATH=/usr/local/airflow
     command: scheduler
     env_file:
-      - env.list
+      - ./airflow/.env
     networks:
       - airflow
 
@@ -110,7 +110,7 @@ services:
       - PYTHONPATH=/usr/local/airflow
     command: worker
     env_file:
-      - env.list
+      - ./airflow/.env
     networks:
       - airflow
 
@@ -132,7 +132,7 @@ services:
       - PYTHONPATH=/usr/local/airflow
     command: worker
     env_file:
-      - env.list
+      - ./airflow/.env
     networks:
       - airflow 
      
@@ -157,5 +157,10 @@ services:
 volumes:
   pgadmin_data:
 
+# Networks. Note that the following network should be existing and connected 
+# to your nginx-proxy container for proper docker-gen containers detections, 
+# and further SSL certificates creation.
 networks:
-  airflow: 
+  airflow:
+    external:
+      name: airflow

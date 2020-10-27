@@ -16,7 +16,7 @@ services:
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
     env_file:
-      - env.list
+      - ./airflow/.env
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
@@ -84,7 +84,7 @@ services:
         - PYTHONPATH=/usr/local/airflow
       command: scheduler
       env_file:
-        - env.list
+        - ./airflow/.env
       networks:
         - airflow
 
@@ -106,7 +106,7 @@ services:
       - PYTHONPATH=/usr/local/airflow
     command: worker
     env_file:
-      - env.list
+      - ./airflow/.env
     networks:
       - airflow
 
@@ -128,7 +128,7 @@ services:
       - PYTHONPATH=/usr/local/airflow
     command: worker
     env_file:
-      - env.list
+      - ./airflow/.env
     networks:
       - airflow 
      

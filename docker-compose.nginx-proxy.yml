@@ -65,7 +65,7 @@ services:
       - VIRTUAL_HOST=pgadmin.airflow.elasticlabs.co
       - VIRTUAL_PORT=80
     env_file:
-      - ./postgis/pgadmin.env
+      - ./airflow/pgadmin.env
     networks:
       - airflow
           

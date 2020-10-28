@@ -67,7 +67,7 @@ services:
       - EXECUTOR=Celery
     expose:
       - "5555"
-    command: flower
+    command: flower --url-prefix=flower
     networks:
       - airflow
 

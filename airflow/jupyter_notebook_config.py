@@ -206,7 +206,7 @@ c.NotebookApp.config_file = u'/usr/local/airflow/.jupyter/jupyter_notebook_confi
 
 ## The default URL to redirect to from `/`
 #  Default: '/tree'
-c.NotebookApp.default_url = u'/notebook'
+#c.NotebookApp.default_url = u'/notebook'
 
 ## Disable cross-site-request-forgery protection
 #

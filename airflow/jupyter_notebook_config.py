@@ -283,7 +283,7 @@ c.NotebookApp.config_file = u'/usr/local/airflow/.jupyter/jupyter_notebook_confi
 
 ## The IP address the notebook server will listen on.
 #  Default: 'localhost'
-#c.NotebookApp.ip = u'0.0.0.0'
+c.NotebookApp.ip = u'0.0.0.0'
 
 ## Supply extra arguments that will be passed to Jinja environment.
 #  Default: {}

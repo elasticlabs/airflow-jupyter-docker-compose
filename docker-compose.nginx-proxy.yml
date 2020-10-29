@@ -45,6 +45,7 @@ services:
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     command: webserver
     healthcheck:
       test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
@@ -65,6 +66,8 @@ services:
       - redis
     environment:
       - EXECUTOR=Celery
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     expose:
       - "5555"
     command: flower -u flower
@@ -82,6 +85,7 @@ services:
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     environment:
       - LOAD_EX=n
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
@@ -106,13 +110,15 @@ services:
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
+      - ./notebooks:/usr/local/airflow/notebooks
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     environment:
       - PYTHONPATH=/usr/local/airflow
     command: ~/.local/bin/jupyter notebook --port 8888 --allow-root
     env_file:
       - ./airflow/.env
     networks:
-      - airflow 
+      - airflow
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -123,6 +129,7 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - '/tmp/servers.json:/servers.json'
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     env_file:
       - ./airflow/pgadmin.env
     networks:
@@ -140,6 +147,7 @@ services:
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     environment:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
@@ -162,6 +170,7 @@ services:
     volumes:
       - ./airflow/dags:/usr/local/airflow/dags
       - ./scripts:/usr/local/airflow/scripts
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     environment:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
@@ -180,6 +189,8 @@ services:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
       - airflow
 
@@ -187,6 +198,8 @@ services:
     image: redis:5.0.5
     container_name: redis4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
       - airflow
 

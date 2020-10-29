@@ -43,8 +43,8 @@ services:
     env_file:
       - ./airflow/.env
     volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./scripts:/usr/local/airflow/scripts
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
       - /var/run/docker.sock:/tmp/docker.sock:ro
     command: webserver
     healthcheck:
@@ -81,8 +81,8 @@ services:
     depends_on:
       - airflow-proxy
     volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./scripts:/usr/local/airflow/scripts
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
     environment:
       - LOAD_EX=n
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
@@ -105,9 +105,9 @@ services:
     depends_on:
       - airflow-proxy
     volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./scripts:/usr/local/airflow/scripts
-      - ./notebooks:/usr/local/airflow/notebooks
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
+      - jupyter_notebooks:/usr/local/airflow/notebooks
     environment:
       - PYTHONPATH=/usr/local/airflow
     command: ~/.local/bin/jupyter notebook --port 8888 --allow-root
@@ -140,8 +140,8 @@ services:
     depends_on:
       - scheduler
     volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./scripts:/usr/local/airflow/scripts
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
     environment:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
@@ -162,8 +162,8 @@ services:
     depends_on:
       - scheduler
     volumes:
-      - ./airflow/dags:/usr/local/airflow/dags
-      - ./scripts:/usr/local/airflow/scripts
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
     environment:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
@@ -194,6 +194,9 @@ services:
 
 volumes:
   pgadmin_data:
+  airflow_dags:
+  airflow_scripts:
+  jupyter_notebooks:
 
 # Networks. Note that the following network should be existing and connected 
 # to your nginx-proxy container for proper docker-gen containers detections, 

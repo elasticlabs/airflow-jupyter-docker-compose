@@ -175,7 +175,7 @@ services:
       - airflow 
      
   postgres:
-    image: postgres:9.6
+    image: postgres:9.6 
     container_name: postgres4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     environment:

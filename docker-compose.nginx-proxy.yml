@@ -95,7 +95,7 @@ services:
   
   jupyter:
     image: ${COMPOSE_PROJECT_NAME}_jupyter:latest
-    container_name: 
+    container_name: jupyter4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     build:
       context: ./airflow

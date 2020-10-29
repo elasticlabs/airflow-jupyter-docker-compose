@@ -10,4 +10,11 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --user jupyter \
     && pip install --user jupyterlab \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
-    && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc
+    && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
+    && jupyter notebook --generate-config
+
+# Copy pre generated Jupyter configuration file
+COPY ./jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
+
+RUN chown airflow:airflow /usr/local/airflow/.jupyter/jupyter_notebook_config.py \
+    && chmod 644 /usr/local/airflow/.jupyter/jupyter_notebook_config.py

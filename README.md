@@ -22,6 +22,12 @@ This software stack comes with 2 compose file versions :
 * See logs of a container: `sudo docker -f <compose-file> logs <service-id>`
 * Monitor containers : `sudo docker -f <compose-file> stats`
 
+## URL
+* `airflow.<your-awesome-domain.ltd>` -> airflow web UI
+* `airflow.<your-awesome-domain.ltd>/flower` -> Flower, celery workers Web UI
+* `airflow.<your-awesome-domain.ltd>/pgadmin` -> pgadmin4
+* `airflow.<your-awesome-domain.ltd>/jupyter` -> jupyter notebook
+
 ## Deployed librairies 
 * scikit-learn -> 0.23.2
 * pandas -> 1.1.2
@@ -29,6 +35,6 @@ This software stack comes with 2 compose file versions :
 * iris (https://scitools.org.uk/iris/docs/latest/) -> 2.4
 * metpy (https://unidata.github.io/MetPy/latest/index.html) -> 0.12.2
 * metview (https://github.com/ecmwf/metview-python) -> 1.5.1
-* climetlab (https://climetlab.readthedocs.io/en/latest/) -> 0.0.98
+* climetlab (https://climetlab.readthedocs.io/en/latest/) -> 0.0.98 + magics
 
 TODO : Add `Jupyter Notebook weather forecasting librairies` 

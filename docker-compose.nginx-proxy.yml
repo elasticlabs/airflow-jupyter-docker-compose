@@ -106,7 +106,7 @@ services:
       - ./scripts:/usr/local/airflow/scripts
     environment:
       - PYTHONPATH=/usr/local/airflow
-    command: jupyter notebook
+    command: ~/.local/bin/jupyter notebook
     env_file:
       - ./airflow/.env
     networks:

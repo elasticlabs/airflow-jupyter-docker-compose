@@ -26,7 +26,7 @@ This software stack comes with 2 compose file versions :
 * `airflow.<your-awesome-domain.ltd>` -> airflow web UI
 * `airflow.<your-awesome-domain.ltd>/flower` -> Flower, celery workers Web UI
 * `airflow.<your-awesome-domain.ltd>/pgadmin` -> pgadmin4
-* `airflow.<your-awesome-domain.ltd>/jupyter` -> jupyter notebook
+* `airflow.<your-awesome-domain.ltd>/jupyter` -> jupyter notebook (password : notebook)
 
 ## Deployed librairies 
 * scikit-learn -> 0.23.2

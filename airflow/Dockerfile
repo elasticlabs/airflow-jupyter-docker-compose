@@ -13,14 +13,14 @@ RUN conda env create -f environment.yml \
 # Use conda-pack to create a standalone environment
 # in /venv:
 RUN conda-pack -n airflow -o /tmp/env.tar \
-    && mkdir /venv \ 
-    && cd /venv \
+    && mkdir /usr/local/venv \ 
+    && cd /usr/local/venv \
     && tar xf /tmp/env.tar \
     && rm /tmp/env.tar
 
 # We've put venv in same path it'll be in final image,
 # so now fix up paths:
-RUN /venv/bin/conda-unpack
+RUN /usr/local/venv/bin/conda-unpack
 
 # Now building the final image
 FROM puckel/docker-airflow:1.10.9 AS runtime 
@@ -34,4 +34,4 @@ COPY requirements.txt /requirements.txt
 RUN pip install --upgrade pip\
     && pip install -r /requirements.txt 
 
-ENTRYPOINT source /venv/bin/activate
+ENTRYPOINT source /usr/local/venv/bin/activate

@@ -21,17 +21,17 @@ services:
       - airflow
 
   airflow:
-    image: ${COMPOSE_PROJECT_NAME}_webserver:latest
     container_name: airflow4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    expose:
+      - "8080"
+    image: ${COMPOSE_PROJECT_NAME}_webserver:latest
     build:
       context: ./airflow
     depends_on:
       - airflow-proxy
       - postgres
       - redis
-    expose:
-      - "8080"
     environment:
       - LOAD_EX=n
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
@@ -56,9 +56,11 @@ services:
       - airflow
 
   flower:
-    image: ${COMPOSE_PROJECT_NAME}_flower:latest
     container_name: flower4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    expose:
+      - "5555"
+    image: ${COMPOSE_PROJECT_NAME}_flower:latest
     build:
       context: ./airflow
     restart: always
@@ -66,16 +68,14 @@ services:
       - redis
     environment:
       - EXECUTOR=Celery
-    expose:
-      - "5555"
     command: flower -u flower
     networks:
       - airflow
 
   scheduler:
-    image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     container_name: scheduler4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     build:
       context: ./airflow
     depends_on:
@@ -117,11 +117,11 @@ services:
       - airflow
 
   pgadmin:
-    image: dpage/pgadmin4:latest
-    restart: unless-stopped
     container_name: pgadmin4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
     expose: 
       - "80"
+    image: dpage/pgadmin4:latest
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - '/tmp/servers.json:/servers.json'
@@ -131,9 +131,9 @@ services:
       - airflow
   
   worker1:
-    image: ${COMPOSE_PROJECT_NAME}_worker1:latest
     container_name: worker_a4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    image: ${COMPOSE_PROJECT_NAME}_worker1:latest
     build:
       context: ./airflow
     restart: always
@@ -153,9 +153,9 @@ services:
       - airflow
 
   worker2:
-    image: ${COMPOSE_PROJECT_NAME}_worker2:latest
     container_name: worker_b4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    image: ${COMPOSE_PROJECT_NAME}_worker2:latest
     build:
       context: ./airflow
     restart: always
@@ -175,9 +175,9 @@ services:
       - airflow 
      
   postgres:
-    image: postgres:9.6 
     container_name: postgres4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    image: postgres:9.6 
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
@@ -186,9 +186,9 @@ services:
       - airflow
 
   redis:
-    image: redis:5.0.5
     container_name: redis4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    image: redis:5.0.5
     networks:
       - airflow
 

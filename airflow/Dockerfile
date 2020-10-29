@@ -2,7 +2,8 @@ FROM jupyter/scipy-notebook AS build
 
 COPY environment.yml .
 
-RUN conda env create -f environment.yml \
+RUN mkdir -p /usr/local/venv \
+    && conda env create -f environment.yml \
     && conda install -c conda-forge --quiet --yes \
     'mlflow=1.0.0' \
     'psycopg2' \
@@ -12,8 +13,7 @@ RUN conda env create -f environment.yml \
 
 # Use conda-pack to create a standalone environment
 # in /venv:
-RUN conda-pack -n airflow -o /tmp/env.tar \
-    && mkdir /usr/local/venv \ 
+RUN conda-pack -n airflow -o /tmp/env.tar \ 
     && cd /usr/local/venv \
     && tar xf /tmp/env.tar \
     && rm /tmp/env.tar
@@ -26,7 +26,7 @@ RUN /usr/local/venv/bin/conda-unpack
 FROM puckel/docker-airflow:1.10.9 AS runtime 
 
 # Copy /venv from the previous stage:
-COPY --from=build /venv /venv
+COPY --from=build /usr/local/venv /usr/local/venv
 
 # Airflow installation
 COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg

@@ -4,7 +4,7 @@ COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 ENV SHELL /bin/bash
 
 COPY requirements.txt /requirements.txt
-RUN export PATH=~/.local/bin:$PATH \
+RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --upgrade pip\
     && pip install -r /requirements.txt \
     && pip install --user jupyter \

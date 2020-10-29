@@ -71,27 +71,12 @@ services:
     networks:
       - airflow
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    restart: unless-stopped
-    container_name: pgadmin4${COMPOSE_PROJECT_NAME}
-    expose: 
-      - "80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - '/tmp/servers.json:/servers.json'
-    env_file:
-      - ./airflow/pgadmin.env
-    networks:
-      - airflow
-          
   scheduler:
     image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     container_name: scheduler4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     build:
       context: ./airflow
-    restart: always
     depends_on:
       - airflow-proxy
     volumes:
@@ -107,7 +92,40 @@ services:
       - ./airflow/.env
     networks:
       - airflow
+  
+  jupyter:
+    image: ${COMPOSE_PROJECT_NAME}_jupyter:latest
+    container_name: 
+    restart: unless-stopped
+    build:
+      context: ./airflow
+    depends_on:
+      - airflow-proxy
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags
+      - ./scripts:/usr/local/airflow/scripts
+    environment:
+      - PYTHONPATH=/usr/local/airflow
+    command: jupyter notebook
+    env_file:
+      - ./airflow/.env
+    networks:
+      - airflow 
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    container_name: pgadmin4${COMPOSE_PROJECT_NAME}
+    expose: 
+      - "80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - '/tmp/servers.json:/servers.json'
+    env_file:
+      - ./airflow/pgadmin.env
+    networks:
+      - airflow
+  
   worker1:
     image: ${COMPOSE_PROJECT_NAME}_worker1:latest
     container_name: worker_a4${COMPOSE_PROJECT_NAME}

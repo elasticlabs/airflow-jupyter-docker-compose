@@ -97,6 +97,8 @@ services:
     image: ${COMPOSE_PROJECT_NAME}_jupyter:latest
     container_name: jupyter4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+    expose: 
+      - "8888"
     build:
       context: ./airflow
     depends_on:
@@ -106,7 +108,7 @@ services:
       - ./scripts:/usr/local/airflow/scripts
     environment:
       - PYTHONPATH=/usr/local/airflow
-    command: ~/.local/bin/jupyter notebook
+    command: ~/.local/bin/jupyter notebook --port=8888
     env_file:
       - ./airflow/.env
     networks:

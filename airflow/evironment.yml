@@ -1,0 +1,6 @@
+name: airflow
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - numpy

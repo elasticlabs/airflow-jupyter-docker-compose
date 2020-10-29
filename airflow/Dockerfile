@@ -15,6 +15,3 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
 
 # Copy pre generated Jupyter configuration file
 COPY ./jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
-
-RUN chown airflow:airflow /usr/local/airflow/.jupyter/jupyter_notebook_config.py \
-    && chmod 644 /usr/local/airflow/.jupyter/jupyter_notebook_config.py

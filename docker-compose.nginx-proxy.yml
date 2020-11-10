@@ -107,7 +107,7 @@ services:
       - jupyter_notebooks:/usr/local/airflow/notebooks
     environment:
       - PYTHONPATH=/usr/local/airflow
-    command: ~/.local/bin/jupyter notebook --port 8888 --allow-root
+    command: ~/.local/bin/jupyter lab --port 8888 --allow-root
     env_file:
       - ./airflow/.env
     networks:

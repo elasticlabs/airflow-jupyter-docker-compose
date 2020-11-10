@@ -14,4 +14,9 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && jupyter notebook --generate-config
 
 # Copy pre generated Jupyter configuration file
+# Enable write access to Jupyter Lab notebooks
 COPY ./jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
+RUN chmod 777 /usr/local/airflow/dags \
+  && chown airflow /usr/local/airflow/dags \
+  && chmod 777 /usr/local/airflow/notebooks \
+  && chown airflow:airflow /usr/local/airflow/notebooks

@@ -16,7 +16,12 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
 COPY ./jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
-RUN chmod 777 /usr/local/airflow/dags \
-  && chown airflow /usr/local/airflow/dags \
-  && chmod 777 /usr/local/airflow/notebooks \
-  && chown airflow:airflow /usr/local/airflow/notebooks
+RUN for dir in "dags notebooks"; \
+       do \
+         echo "[INFO] Creating ${dir} volume directory"; \
+         mkdir -p ${dir}; \
+         chmod 777 ${dir}; \
+         echo -e $'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
+      done;
+
+VOLUME ["/usr/local/airflow/dags", "/usr/local/airflow/notebooks"]

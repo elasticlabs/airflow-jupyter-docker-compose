@@ -4,3 +4,4 @@ xgboost==1.2.0
 metpy==0.12.2
 metview==1.5.1
 climetlab==0.0.98
+pygrib==2.0.4

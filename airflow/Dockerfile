@@ -9,6 +9,7 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install -r /requirements.txt \
     && pip install --user jupyter \
     && pip install --user jupyterlab \
+    && pip install papermill \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
     && jupyter notebook --generate-config

@@ -21,7 +21,7 @@ RUN for dir in dags notebooks; \
          echo "[INFO] Creating ${dir} volume directory"; \
          mkdir -p ${dir}; \
          chmod 777 ${dir}; \
-         echo -e $'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
+         echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
       done;
 
 VOLUME ["/usr/local/airflow/dags", "/usr/local/airflow/notebooks"]

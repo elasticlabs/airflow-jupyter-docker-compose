@@ -16,7 +16,7 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
 COPY ./jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
-RUN for dir in "dags notebooks"; \
+RUN for dir in dags notebooks; \
        do \
          echo "[INFO] Creating ${dir} volume directory"; \
          mkdir -p ${dir}; \

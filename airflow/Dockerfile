@@ -3,16 +3,18 @@ FROM puckel/docker-airflow:1.10.9
 COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 ENV SHELL /bin/bash
 
-COPY requirements.txt /requirements.txt
 RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --upgrade pip \
-    && pip install -r /requirements.txt \
     && pip install --user jupyter \
     && pip install --user jupyterlab \
     && pip install papermill \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
-    && jupyter notebook --generate-config
+    && jupyter notebook --generate-config \
+    && apt-get update --fix-missing \
+    && apt-get install -y wget bzip2 ca-certificates curl git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
@@ -25,19 +27,14 @@ RUN for dir in dags notebooks; \
          echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
       done;
 
-# Install miniconda3 
-# To replace later by conda-pack and 2 stages building
-# Inspired by https://hub.docker.com/r/continuumio/miniconda3/dockerfile
-RUN apt-get update --fix-missing && \
-    apt-get install -y wget bzip2 ca-certificates curl git && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
-# Configure environment
+# Configure Conda environment
 ENV CONDA_DIR=/opt/conda \
-    SHELL=/bin/bash \
-    TINI_VERSION v0.16.1
-ENV PATH /opt/conda/bin:$PATH
+    SHELL=/bin/bash
+
+ENV PATH=${CONDA_DIR}/bin:$PATH
+
+USER root
 
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \
@@ -62,7 +59,6 @@ RUN conda install -c conda-forge --yes --freeze-installed \
     netcdf4 \
     xarray \
     ffmpeg \
-    dask \
     iris \
     scikit-learn \
     seaborn \
@@ -77,7 +73,7 @@ RUN conda install -c conda-forge --yes --freeze-installed \
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
     && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
-
+USER airflow
+WORKDIR /usr/local/airflow
 VOLUME ["/usr/local/airflow/dags", "/usr/local/airflow/notebooks"]
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
-CMD [ "/bin/bash" ]

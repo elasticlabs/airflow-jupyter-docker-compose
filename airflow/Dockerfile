@@ -12,9 +12,7 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
     && jupyter notebook --generate-config \
     && apt-get update --fix-missing \
-    && apt-get install -y wget bzip2 ca-certificates curl git \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y wget bzip2 ca-certificates curl git 
 
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
@@ -35,6 +33,9 @@ ENV CONDA_DIR=/opt/conda \
 ENV PATH=${CONDA_DIR}/bin:$PATH
 
 USER root
+
+RUN apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda && \

@@ -2,7 +2,7 @@ version: '3.7'
 services:
   airflow-proxy:
     image: ${COMPOSE_PROJECT_NAME}_airflow-proxy:latest
-    container_name: airflow-proxy4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-admin-revproxy
     restart: unless-stopped
     expose:
       - "80"
@@ -21,7 +21,7 @@ services:
       - airflow
 
   airflow:
-    container_name: airflow4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-webserver
     restart: unless-stopped
     expose:
       - "8080"
@@ -53,7 +53,7 @@ services:
       - airflow
 
   flower:
-    container_name: flower4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-admin-flower
     restart: unless-stopped
     expose:
       - "5555"
@@ -70,7 +70,7 @@ services:
       - airflow
 
   scheduler:
-    container_name: scheduler4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-scheduler
     restart: unless-stopped
     image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     build:
@@ -93,7 +93,7 @@ services:
   
   jupyter:
     image: ${COMPOSE_PROJECT_NAME}_jupyter:latest
-    container_name: jupyter4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-jupyterlab
     restart: unless-stopped
     expose: 
       - "8888"
@@ -114,7 +114,7 @@ services:
       - airflow
 
   pgadmin:
-    container_name: pgadmin4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-admin-pgadmin
     restart: unless-stopped
     expose: 
       - "80"
@@ -128,7 +128,7 @@ services:
       - airflow
   
   worker1:
-    container_name: worker_a4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-worker_a4
     restart: unless-stopped
     image: ${COMPOSE_PROJECT_NAME}_worker1:latest
     build:
@@ -150,7 +150,7 @@ services:
       - airflow
 
   worker2:
-    container_name: worker_b4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-worker_b4
     restart: unless-stopped
     image: ${COMPOSE_PROJECT_NAME}_worker2:latest
     build:
@@ -172,7 +172,7 @@ services:
       - airflow 
      
   postgres:
-    container_name: postgres4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-postgresql
     restart: unless-stopped
     image: postgres:9.6 
     environment:
@@ -183,7 +183,7 @@ services:
       - airflow
 
   redis:
-    container_name: redis4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
     restart: unless-stopped
     image: redis:5.0.5
     networks:

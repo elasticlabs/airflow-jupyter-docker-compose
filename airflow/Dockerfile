@@ -207,14 +207,14 @@ USER $NB_UID
 WORKDIR $HOME
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
-#COPY jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
-#RUN for dir in dags notebooks; \
-#       do \
-#         echo "[INFO] Creating ${dir} volume directory"; \
-#         mkdir -p ${dir}; \
-#         chmod 777 ${dir}; \
-#         echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
-#      done;
+COPY jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
+RUN for dir in dags notebooks; \
+       do \
+         echo "[INFO] Creating ${dir} volume directory"; \
+         mkdir -p ${dir}; \
+         chmod 777 ${dir}; \
+         echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
+      done;
 
 VOLUME ["/usr/local/airflow/dags", "/usr/local/airflow/notebooks"]
 ENTRYPOINT [ "tini" , "-g" , "--"]

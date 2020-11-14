@@ -6,6 +6,7 @@ ARG NB_USER="airflow"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 
+USER root
 RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --upgrade pip \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \

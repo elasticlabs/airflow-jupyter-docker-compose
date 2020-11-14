@@ -89,12 +89,8 @@ ARG miniconda_checksum="d63adf39f2c220950a063e0529d4ff74"
 ENV MINICONDA_VERSION="4.8.3" \
     CONDA_VERSION="4.9.0"
 
-# Install conda as jovyan and check the md5 sum provided on the download site
-ENV MINICONDA_VERSION="${miniconda_version}" \
-    CONDA_VERSION="${conda_version}"
-
 WORKDIR /tmp
-RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
+RUN wget https://repo.continuum.io/miniconda/Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
     echo "${miniconda_checksum} *Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
 RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
     rm Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \

@@ -12,7 +12,7 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
     && apt-get update --fix-missing \
-    && apt-get install -yq --no-install-recommend \
+    && apt-get install -yq \
        build-essential \
        emacs-nox \
        vim-tiny \
@@ -40,7 +40,6 @@ RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
        sudo \
        locales \
        fonts-liberation \
-       run-one \
        ffmpeg \
        dvipng \
        cm-super \
@@ -60,7 +59,7 @@ ENV CONDA_DIR=/opt/conda \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    HOME=$HOME
+    HOME=${AIRFLOW_HOME}
 ENV PATH=${CONDA_DIR}/bin:$PATH
 
 # Copy a script that we will use to correct permissions after running certain commands

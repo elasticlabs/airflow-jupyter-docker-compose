@@ -149,6 +149,7 @@ RUN conda install -c conda-forge --yes --freeze-installed \
     netcdf4 \
     xarray \
     iris \
+    ipywidgets \
     scikit-learn \
     seaborn \
     magics \

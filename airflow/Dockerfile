@@ -109,19 +109,10 @@ RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CON
     rm -rf ${HOME}/.cache/yarn && \
     fix-permissions $CONDA_DIR && \
     fix-permissions ${HOME}
-
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh && \
-    # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
-    echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
-    conda config --system --prepend channels conda-forge && \
-    conda config --system --set auto_update_conda false && \
-    conda config --system --set show_channel_urls true && \
-    conda config --system --set channel_priority strict &&\
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate base" >> ~/.bashrc
+    # Activate conda environment
+    #ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    #echo "conda activate base" >> ~/.bashrc
 
 # Install Tini
 RUN conda install --quiet --yes 'tini=0.18.0' && \

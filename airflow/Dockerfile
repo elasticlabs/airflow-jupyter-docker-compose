@@ -10,6 +10,7 @@ USER root
 RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --upgrade pip \
     && pip install pyowm==3.1.1 \
+    && pip install ecmwf-api-client \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
     && apt-get update --fix-missing \

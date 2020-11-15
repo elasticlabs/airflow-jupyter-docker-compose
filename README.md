@@ -48,6 +48,7 @@ Please find below the included choice of librairies and associated reference URL
 | psycopg2 | Psycopg is the most popular PostgreSQL database adapter for the Python programming language. | https://www.psycopg.org/docs/ |
 
 * JupyterLab extensions
+
 | Library | Desciption | Resources |
 |---|---|---|
 | appmode | A Jupyter extensions that turns notebooks into web applications. | https://github.com/oschuett/appmode |
@@ -59,7 +60,7 @@ Please find below the included choice of librairies and associated reference URL
 | jupyterlab-plotly | The plotly Python library is an interactive, open-source plotting library that supports over 40 unique chart types covering a wide range of statistical, financial, geographic, scientific, and 3-dimensional use-cases. | https://plotly.com/python/getting-started/ |
 | jupyterlab-voyager | JupyterLab extension visualize data with Voyager | https://data-voyager.gitbook.io/voyager/ |
 
-# Geo / EO / Weather specific
+### Geo / EO / Weather specific
 | Library | Desciption | Resources |
 |---|---|---|
 | cartopy | Cartopy is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. | https://scitools.org.uk/cartopy/docs/latest/ |

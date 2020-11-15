@@ -207,7 +207,7 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     jupyter labextension install @bokeh/jupyter_bokeh@^2.0.0 --no-build && \
     jupyter labextension install jupyter-matplotlib@^0.7.2 --no-build && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-leaflet && \
-    jupyter labextension install @mflevine/jupyterlab_html && \
+    #jupyter labextension install @mflevine/jupyterlab_html && \
     jupyter labextension install jupyterlab-plotly && \
     jupyter labextension install jupyterlab_voyager && \
     jupyter lab build -y && \

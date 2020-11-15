@@ -145,8 +145,9 @@ RUN conda install --repodata-fn repodata.json --quiet --yes \
 # Deploy required libraries using miniconda environment
 # For reference -> https://docs.anaconda.com/mkl-optimizations/
 RUN conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas
+
+# Essential python data analysis librairies
 RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
-    # Essential python data analysis librairies
     dask \
     matplotlib-base \
     numpy \
@@ -158,15 +159,19 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     scikit-learn \
     seaborn \
     statsmodels \
-    xarray \
-    # Jupyter and Airflow framework specific librairies
+    xarray
+
+# Jupyter and Airflow framework specific librairies
+RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
     appmode \
     ipywidgets \
     ipyleaflet \
     papermill \
     psycopg2 \
-    cloudpickle \
-    # EO / Weather specific
+    cloudpickle
+
+# EO / Weather specific
+RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
     bokeh \
     bottleneck \
     cartopy \

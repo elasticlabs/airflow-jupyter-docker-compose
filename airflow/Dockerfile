@@ -103,7 +103,7 @@ RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CON
     conda config --system --set auto_update_conda false && \
     conda config --system --set show_channel_urls true && \
     conda config --system --set channel_priority strict && \
-    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --yes python=$PYTHON_VERSION; fi && \
+    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --repodata-fn repodata.json --yes python=$PYTHON_VERSION; fi && \
     conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
     conda install --repodata-fn repodata.json --quiet --yes "conda=${CONDA_VERSION}" && \
     conda install --repodata-fn repodata.json --quiet --yes pip && \
@@ -177,7 +177,6 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     cartopy \
     cmocean \
     descartes \
-    ecwmf-api-client \ 
     geos \
     geopandas \
     iris \

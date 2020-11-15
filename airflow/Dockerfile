@@ -105,8 +105,8 @@ RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CON
     conda config --system --set channel_priority strict && \
     if [ ! $PYTHON_VERSION = 'default' ]; then conda install --yes python=$PYTHON_VERSION; fi && \
     conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
-    conda install --quiet --yes "conda=${CONDA_VERSION}" && \
-    conda install --quiet --yes pip && \
+    conda install --repodata-fn repodata.json --quiet --yes "conda=${CONDA_VERSION}" && \
+    conda install --repodata-fn repodata.json --quiet --yes pip && \
     conda update --all --quiet --yes && \
     conda clean --all -f -y && \
     rm -rf ${HOME}/.cache/yarn && \
@@ -118,7 +118,7 @@ RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CON
     #echo "conda activate base" >> ~/.bashrc
 
 # Install Tini
-RUN conda install --quiet --yes 'tini=0.18.0' && \
+RUN conda install --repodata-fn repodata.json --quiet --yes 'tini=0.18.0' && \
     conda list tini | grep tini | tr -s ' ' | cut -d ' ' -f 1,2 >> $CONDA_DIR/conda-meta/pinned && \
     conda clean --all -f -y && \
     fix-permissions $CONDA_DIR && \
@@ -130,7 +130,7 @@ RUN conda install --quiet --yes 'tini=0.18.0' && \
 # Correct permissions
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
-RUN conda install --quiet --yes \
+RUN conda install --repodata-fn repodata.json --quiet --yes \
     'notebook=6.1.4' \
     'jupyterhub=1.2.1' \
     'jupyterlab=2.2.9' && \
@@ -144,8 +144,8 @@ RUN conda install --quiet --yes \
 
 # Deploy required libraries using miniconda environment
 # For reference -> https://docs.anaconda.com/mkl-optimizations/
-RUN conda install --quiet --yes conda-forge::blas=*=openblas
-RUN conda install -c conda-forge --yes --freeze-installed \
+RUN conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas
+RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
     # Essential python data analysis librairies
     dask \
     matplotlib-base \

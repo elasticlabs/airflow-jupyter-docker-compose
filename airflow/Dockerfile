@@ -9,6 +9,7 @@ ARG NB_GID="1000"
 USER root
 RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
     && pip install --upgrade pip \
+    && pip install pyowm==3.1.1 \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
     && apt-get update --fix-missing \
@@ -60,6 +61,7 @@ ENV CONDA_DIR=/opt/conda \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     HOME=${AIRFLOW_HOME}
+    
 ENV PATH=${CONDA_DIR}/bin:$PATH
 
 # Copy a script that we will use to correct permissions after running certain commands
@@ -140,31 +142,48 @@ RUN conda install --quiet --yes \
     fix-permissions ${HOME}
 
 # Deploy required libraries using miniconda environment
+# For reference -> https://docs.anaconda.com/mkl-optimizations/
 RUN conda install --quiet --yes conda-forge::blas=*=openblas
 RUN conda install -c conda-forge --yes --freeze-installed \
-    nomkl \
-    metpy \
-    siphon \
-    cartopy \
-    netcdf4 \
-    xarray \
-    iris \
-    ipywidgets \
-    scikit-learn \
-    seaborn \
-    magics \
+    # Essential python data analysis librairies
+    dask \
+    matplotlib-base \
     numpy \
     pandas \
-    bokeh \
-    bottleneck \
-    cloudpickle \
-    matplotlib-base \
-    protobuf \
+    panel \ 
     pytables \
     scipy \
     scikit-image \
     scikit-learn \
+    seaborn \
+    statsmodels \
+    xarray \
+    # Jupyter and Airflow framework specific librairies
+    appmode \
+    ipywidgets \
+    ipyleaflet \
+    papermill \
     psycopg2 \
+    cloudpickle \
+    # EO / Weather specific
+    bokeh \
+    bottleneck \
+    cartopy \
+    cmocean \
+    descartes \
+    ecwmf-api-client \ 
+    geos \
+    geopandas \
+    iris \
+    iris-grib \
+    metpy \
+    metview \
+    magics \
+    netcdf4 \
+    protobuf \
+    pynio \
+    shapely \
+    siphon \
     # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html
     && conda clean -tipsy \
     && fix-permissions $CONDA_DIR \
@@ -175,12 +194,16 @@ RUN conda install -c conda-forge --yes --freeze-installed \
     && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete && \
     # Activate ipywidgets extension in the environment that runs the notebook server
     jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
-    # Also activate ipywidgets extension for JupyterLab
+    # Also activate ipywidgets and other useful extensions for JupyterLab
     # Check this URL for most recent compatibilities
     # https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
     jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build && \
     jupyter labextension install @bokeh/jupyter_bokeh@^2.0.0 --no-build && \
     jupyter labextension install jupyter-matplotlib@^0.7.2 --no-build && \
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-leaflet && \
+    jupyter labextension install @mflevine/jupyterlab_html && \
+    jupyter labextension install jupyterlab-plotly && \
+    jupyter labextension install jupyterlab_voyager && \
     jupyter lab build -y && \
     jupyter lab clean -y && \
     npm cache clean --force && \
@@ -222,7 +245,7 @@ ENTRYPOINT [ "tini" , "-g" , "--"]
 CMD ["start-notebook.sh"]
 
 # Copy local files as late as possible to avoid cache busting
-COPY start.sh start-notebook.sh start-singleuser.sh /usr/local/bin/
+#COPY start.sh start-notebook.sh start-singleuser.sh /usr/local/bin/
 COPY jupyter_notebook_config.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root

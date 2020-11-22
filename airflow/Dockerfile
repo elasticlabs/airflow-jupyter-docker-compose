@@ -159,30 +159,26 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     scikit-learn \
     seaborn \
     statsmodels \
-    xarray
-
-# Jupyter and Airflow framework specific librairies
-RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
+    xarray \
+    # Jupyter and Airflow framework specific librairie
     appmode \
     ipywidgets \
     ipyleaflet \
     papermill \
     psycopg2 \
-    cloudpickle
-
-# EO / Weather specific
-RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
+    cloudpickle \
+    # EO / Weather specific
     bokeh \
     bottleneck \
     cartopy \
     cmocean \
     descartes \
     geos \
-    #geopandas \
+    geopandas \
     iris \
     iris-grib \
     metpy \
-    metview \
+    metview-batch \
     magics \
     netcdf4 \
     protobuf \

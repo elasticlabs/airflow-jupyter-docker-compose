@@ -26,28 +26,28 @@ help:
 .PHONY: up
 up:
 	@echo "[INFO] Building the Airflow stack"
-	AIRFLOW_URL?=$(shell grep LETSENCRYPT_HOST docker-compose.nginx-proxy.yml | sed 's/\=/ /' | awk '{print $3}')
+	AIRFLOW_URL?=$(shell grep LETSENCRYPT_HOST docker-compose.yml | sed 's/\=/ /' | awk '{print $3}')
 	@echo "[INFO] The following URL is detected : $(AIRFLOW_URL). It should be reachable for proper operation"
 	#docker network create airflow-proxy
 	#docker network connect airflow-proxy <nginx-proxy container name>
 	#TODO : automatic network test & connection
-	docker-compose -f docker-compose.nginx-proxy.yml up -d --build
+	docker-compose -f docker-compose.yml up -d --build
 
 .PHONY: logs
 logs:
     @echo "[INFO] Following latest logs"
-	docker-compose -f docker-compose.nginx-proxy.yml logs --follow
+	docker-compose -f docker-compose.yml logs --follow
 
 .PHONY: down
 down:
-    @echo "[INFO] Bringing done the HTTPS automated proxy"
-	docker-compose -f docker-compose.nginx-proxy.yml down --remove-orphans
+    @echo "[INFO] Bringing done the Airflow stack"
+	docker-compose -f docker-compose.yml down --remove-orphans
 	@echo "[INFO] Done. See (sudo make cleanup) for containers, images, and static volumes cleanup"
 
 .PHONY: cleanup
 cleanup:
-    @echo "[INFO] Bringing done the HTTPS automated proxy"
-	docker-compose -f docker-compose.nginx-proxy.yml down --remove-orphans
+    @echo "[INFO] Bringing done the Airflow stack"
+	docker-compose -f docker-compose.yml down --remove-orphans
 	# 2nd : clean up all containers & images, without deleting static volumes
     @echo "[INFO] Cleaning up containers & images"
 	docker rm $(docker ps -a -q)
@@ -65,7 +65,7 @@ cleanup:
 
 .PHONY pull
 pull: 
-    docker-compose -f docker-compose.nginx-proxy.yml pull    
+    docker-compose -f docker-compose.yml pull    
 
 .PHONY: update
 update: pull up wait

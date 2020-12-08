@@ -5,38 +5,31 @@
 SHELL         = /bin/bash
 .SHELLFLAGS   = -o pipefail -c
 
-# For cleanup, get Compose project name from .env file
+# Variables initialization from .env file
 DC_PROJECT?=$(shell cat .env | sed 's/^*=//')
+AIRFLOW_URL?=$(shell grep LETSENCRYPT_HOST docker-compose.yml | sed 's/\=/ /' | awk '{print $3}')
+
 
 # Every command is a PHONY, to avoid file naming confliction -> strengh comes from good habits!
 .PHONY: help
 help:
-	@echo "=============================================================================="
-	@echo " Orchestration of data science and earth observation models in Apache Airflow "
-	@echo "  https://github.com/elasticlabs/airflow-jupyter-docker-compose"
+	@echo "=============================================================================================="
+	@echo "        Orchestration of data science and earth observation models in Apache Airflow "
+	@echo "             https://github.com/elasticlabs/airflow-jupyter-docker-compose"
 	@echo " "
 	@echo "Hints for developers:"
-	@echo "  make up            # With working HTTPS proxy, bring up the Airflow stack"
-	@echo "  make down          # Brings the Airflow stack down. "
-	@echo "  make logs          # Follows whole Airflow stack logs (Airflow, PGAdmin, Flower, Jyputer notebook)"
-	@echo "  make cleanup       # Complete hard cleanup of images, containers, networks, volumes & data"
-	@echo "  make update        # Update the whole stack"
-	@echo "=============================================================================="
+	@echo "  make up             # With working HTTPS proxy, bring up the Airflow stack"
+	@echo "  make down           # Brings the Airflow stack down. "
+	@echo "  make update         # Update the whole stack"
+	@echo "  make hard-cleanup   # Complete hard cleanup of images, containers, networks, volumes & data"
+	@echo "=============================================================================================="
 
 .PHONY: up
 up:
 	@echo "[INFO] Building the Airflow stack"
-	AIRFLOW_URL?=$(shell grep LETSENCRYPT_HOST docker-compose.yml | sed 's/\=/ /' | awk '{print $3}')
 	@echo "[INFO] The following URL is detected : $(AIRFLOW_URL). It should be reachable for proper operation"
-	#docker network create airflow-proxy
-	#docker network connect airflow-proxy <nginx-proxy container name>
-	#TODO : automatic network test & connection
+	nslookup $(AIRFLOW_URL) && echo "        -> nslookup OK!"
 	docker-compose -f docker-compose.yml up -d --build
-
-.PHONY: logs
-logs:
-    @echo "[INFO] Following latest logs"
-	docker-compose -f docker-compose.yml logs --follow
 
 .PHONY: down
 down:

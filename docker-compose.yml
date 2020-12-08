@@ -1,8 +1,10 @@
 version: '3.7'
 services:
+  #
+  # Proxy - HTTP entrypoint
   airflow-proxy:
-    image: ${COMPOSE_PROJECT_NAME}_airflow-proxy:latest
-    container_name: ${COMPOSE_PROJECT_NAME}-admin-revproxy
+    image: ${COMPOSE_PROJECT_NAME}_entrypoint:latest
+    container_name: ${COMPOSE_PROJECT_NAME}_entrypoint
     restart: unless-stopped
     expose:
       - "80"
@@ -10,22 +12,22 @@ services:
       context: ./proxy
     environment:
       - DHPARAM_GENERATION=false
-      - VIRTUAL_HOST=airflow.elasticlabs.co
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
       - VIRTUAL_PORT=80
-      - LETSENCRYPT_HOST=airflow.elasticlabs.co
-      - LETSENCRYPT_EMAIL=patrice.mauny@gmail.com
+      - LETSENCRYPT_HOST=${VIRTUAL_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
-      - airflow-proxy
+      - https_revproxy
       - airflow
 
   airflow:
-    container_name: ${COMPOSE_PROJECT_NAME}-webserver
+    container_name: ${COMPOSE_PROJECT_NAME}_admin-gui
     restart: unless-stopped
     expose:
       - "8080"
-    image: ${COMPOSE_PROJECT_NAME}_webserver:latest
+    image: ${COMPOSE_PROJECT_NAME}admin-guir:latest
     build:
       context: ./airflow
     depends_on:
@@ -199,7 +201,7 @@ volumes:
 # to your nginx-proxy container for proper docker-gen containers detections, 
 # and further SSL certificates creation.
 networks:
-  airflow-proxy:
+  https_revproxy:
     external:
-      name: airflow-proxy
+      name: ${APPS_NETWORK}
   airflow:

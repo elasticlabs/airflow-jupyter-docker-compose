@@ -33,32 +33,30 @@ up:
 
 .PHONY: down
 down:
-    @echo "[INFO] Bringing done the Airflow stack"
+	@echo "[INFO] Bringing done the Airflow stack"
 	docker-compose -f docker-compose.yml down --remove-orphans
 	@echo "[INFO] Done. See (sudo make cleanup) for containers, images, and static volumes cleanup"
 
-.PHONY: cleanup
-cleanup:
-    @echo "[INFO] Bringing done the Airflow stack"
+.PHONY: hard-cleanup
+hard-cleanup:
+	@echo "[INFO] Bringing done the Airflow stack"
 	docker-compose -f docker-compose.yml down --remove-orphans
 	# 2nd : clean up all containers & images, without deleting static volumes
-    @echo "[INFO] Cleaning up containers & images"
-	docker rm $(docker ps -a -q)
-	docker rmi $(docker images -q)
+	@echo "[INFO] Cleaning up containers & images"
 	docker system prune -a
-    # Delete all hosted persistent data available in volumes
+	# Delete all hosted persistent data available in volumes
 	@echo "[INFO] Cleaning up static volumes"
-    docker volume rm -f $(DC_PROJECT)pgadmin_data
-    docker volume rm -f $(DC_PROJECT)airflow_dags
-    docker volume rm -f $(DC_PROJECT)airflow_scripts
-    docker volume rm -f $(DC_PROJECT)jupyter_notebooks
+	docker volume rm -f $(DC_PROJECT)pgadmin_data
+	docker volume rm -f $(DC_PROJECT)airflow_dags
+	docker volume rm -f $(DC_PROJECT)airflow_scripts
+	docker volume rm -f $(DC_PROJECT)jupyter_notebooks
 	# Remove all dangling docker volumes
 	@echo "[INFO] Remove all dangling docker volumes"
 	docker volume rm $(shell docker volume ls -qf dangling=true)
 
 .PHONY pull
 pull: 
-    docker-compose -f docker-compose.yml pull    
+	docker-compose -f docker-compose.yml pull
 
 .PHONY: update
 update: pull up wait

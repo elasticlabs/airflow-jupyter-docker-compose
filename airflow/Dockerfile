@@ -254,7 +254,7 @@ COPY jupyter_notebook_config.py /etc/jupyter/
 USER root
 RUN fix-permissions /etc/jupyter/
 
-# Switch back to jovyan to avoid accidental container runs as root
+# Switch back to user "airflow" to avoid accidental container runs as root
 USER $NB_UID
 
 WORKDIR /usr/local/airflow

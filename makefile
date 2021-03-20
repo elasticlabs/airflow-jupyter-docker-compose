@@ -67,10 +67,11 @@ build-volumes-links:
 .PHONY: urls
 urls:
 	@bash ./.utils/message.sh headline "[INFO] You may now access your project at the following URLs:"
-	@bash ./.utils/message.sh link "Airflow WebGUI:  https://${APP_BASEURL}/"
+	@bash ./.utils/message.sh link "JupyterLab:  https://${APP_BASEURL}/"
 	@bash ./.utils/message.sh link "Flower GUI:      https://${APP_BASEURL}/flower/"
 	@bash ./.utils/message.sh link "PGAdmin:         https://${APP_BASEURL}/pgadmin/"
-	@bash ./.utils/message.sh link "JupyterLab:      https://${APP_BASEURL}/jupyter/"
+	@bash ./.utils/message.sh link "Airflow WebGUI:      https://${APP_BASEURL}/airflow/"
+	@bash ./.utils/message.sh link "Geoserver WebGUI:      https://${APP_BASEURL}/geoserver/"
 	@echo ""
 
 .PHONY: pull

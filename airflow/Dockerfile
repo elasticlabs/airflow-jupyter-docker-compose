@@ -177,8 +177,8 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     geopandas \
     iris \
     iris-grib \
-    metpy \
-    metview-batch \
+    # metpy \
+    # metview-batch \
     magics \
     netcdf4 \
     protobuf \

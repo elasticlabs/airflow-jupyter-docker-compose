@@ -3,8 +3,8 @@ services:
   #
   # Proxy - HTTP entrypoint
   airflow-proxy:
-    image: ${COMPOSE_PROJECT_NAME}_entrypoint:latest
-    container_name: ${COMPOSE_PROJECT_NAME}_entrypoint
+    image: nginx-proxy4${COMPOSE_PROJECT_NAME}:latest
+    container_name: nginx-proxy4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     expose:
       - "80"
@@ -23,11 +23,11 @@ services:
       - airflow
 
   airflow:
-    container_name: ${COMPOSE_PROJECT_NAME}_admin-gui
+    container_name: airflow-admin4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     expose:
       - "8080"
-    image: ${COMPOSE_PROJECT_NAME}admin-gui:latest
+    image: airflow-admin4${COMPOSE_PROJECT_NAME}:latest
     build:
       context: ./airflow
     depends_on:
@@ -55,11 +55,11 @@ services:
       - airflow
 
   flower:
-    container_name: ${COMPOSE_PROJECT_NAME}-admin-flower
+    container_name: ${COMPOSE_PROJECT_NAME}_celery-admin
     restart: unless-stopped
     expose:
       - "5555"
-    image: ${COMPOSE_PROJECT_NAME}_flower:latest
+    image: ${COMPOSE_PROJECT_NAME}_celery-admin:latest
     build:
       context: ./airflow
     restart: always
@@ -72,7 +72,7 @@ services:
       - airflow
 
   scheduler:
-    container_name: ${COMPOSE_PROJECT_NAME}-scheduler
+    container_name: ${COMPOSE_PROJECT_NAME}_scheduler
     restart: unless-stopped
     image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     build:
@@ -90,42 +90,6 @@ services:
     command: airflow scheduler
     env_file:
       - ./airflow/.env
-    networks:
-      - airflow
-  
-  jupyter:
-    image: ${COMPOSE_PROJECT_NAME}_jupyter:latest
-    container_name: ${COMPOSE_PROJECT_NAME}-jupyterlab
-    restart: unless-stopped
-    expose: 
-      - "8888"
-    build:
-      context: ./airflow
-    depends_on:
-      - airflow-proxy
-    volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
-      - jupyter_notebooks:/usr/local/airflow/notebooks
-    environment:
-      - PYTHONPATH=/usr/local/airflow
-    command: jupyter lab --port 8888 --allow-root
-    env_file:
-      - ./airflow/.env
-    networks:
-      - airflow
-
-  pgadmin:
-    container_name: ${COMPOSE_PROJECT_NAME}-admin-pgadmin
-    restart: unless-stopped
-    expose: 
-      - "80"
-    image: dpage/pgadmin4:latest
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - '/tmp/servers.json:/servers.json'
-    env_file:
-      - ./airflow/pgadmin.env
     networks:
       - airflow
   
@@ -172,22 +136,83 @@ services:
       - ./airflow/.env
     networks:
       - airflow 
-     
-  postgres:
-    container_name: ${COMPOSE_PROJECT_NAME}-postgresql
-    restart: unless-stopped
-    image: postgres:9.6 
-    environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
-    networks:
-      - airflow
-
+  
   redis:
     container_name: ${COMPOSE_PROJECT_NAME}-redis
     restart: unless-stopped
     image: redis:5.0.5
+    networks:
+      - airflow
+
+  jupyter:
+    image: jupyter-lab4${COMPOSE_PROJECT_NAME}:latest
+    container_name: jupyter-lab4${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    expose: 
+      - "8888"
+    build:
+      context: ./airflow
+    depends_on:
+      - airflow-proxy
+    volumes:
+      - airflow_dags:/usr/local/airflow/dags
+      - airflow_scripts:/usr/local/airflow/scripts
+      - jupyter_notebooks:/usr/local/airflow/notebooks
+    environment:
+      - PYTHONPATH=/usr/local/airflow
+    command: jupyter lab --port 8888 --allow-root
+    env_file:
+      - ./airflow/.env
+    networks:
+      - airflow
+
+  pgadmin:
+    container_name: ${COMPOSE_PROJECT_NAME}_postgressql-pgadmin
+    restart: unless-stopped
+    expose: 
+      - "80"
+    build:
+      context: ./pgadmin
+    environment: 
+      - PGADMIN_DEFAULT_EMAIL=${COMPOSE_PROJECT_NAME}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - '/tmp/servers.json:/servers.json'
+    networks:
+      - airflow
+
+  postgres:
+    container_name: ${COMPOSE_PROJECT_NAME}_postgresql
+    restart: unless-stopped
+    build:
+      context: ./postgres
+    expose:
+      - "5432" 
+    stdin_open: true
+    env_file: 
+      - ./postgis/.env
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - dbbackups:/pg_backups
+    networks:
+      - airflow
+
+  geoserver:
+    container_name: ${COMPOSE_PROJECT_NAME}_geoserver
+    image: ${COMPOSE_PROJECT_NAME}_geoserver:${GS_VERSION}
+    restart: unless-stopped
+    expose:
+      - "8080" 
+    build:
+      context: ./geoserver
+    depends_on: 
+      - airflow-proxy
+      - postgres
+      - pgadmin
+    volumes:
+      - geoserver-data:/var/local/geoserver
+      - geoserver-exts:/var/local/geoserver-exts   
     networks:
       - airflow
 
@@ -196,6 +221,10 @@ volumes:
   airflow_dags:
   airflow_scripts:
   jupyter_notebooks:
+  geoserver-data:
+  geoserver-exts:
+  dbdata:
+  dbbackups:
 
 # Networks. Note that the following network should be existing and connected 
 # to your nginx-proxy container for proper docker-gen containers detections, 

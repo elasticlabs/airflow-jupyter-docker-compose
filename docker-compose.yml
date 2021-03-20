@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
-    image: ${COMPOSE_PROJECT_NAME}admin-guir:latest
+    image: ${COMPOSE_PROJECT_NAME}admin-gui:latest
     build:
       context: ./airflow
     depends_on:
@@ -45,7 +45,7 @@ services:
       - airflow_dags:/usr/local/airflow/dags
       - airflow_scripts:/usr/local/airflow/scripts
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    command: webserver
+    command: airflow webserver
     healthcheck:
       test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
       interval: 30s
@@ -67,7 +67,7 @@ services:
       - redis
     environment:
       - EXECUTOR=Celery
-    command: flower -u flower
+    command: airflow flower -u flower
     networks:
       - airflow
 
@@ -87,7 +87,7 @@ services:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
-    command: scheduler
+    command: airflow scheduler
     env_file:
       - ./airflow/.env
     networks:
@@ -145,7 +145,7 @@ services:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
-    command: worker
+    command: airflow worker
     env_file:
       - ./airflow/.env
     networks:
@@ -167,7 +167,7 @@ services:
       - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
       - EXECUTOR=Celery
       - PYTHONPATH=/usr/local/airflow
-    command: worker
+    command: airflow worker
     env_file:
       - ./airflow/.env
     networks:

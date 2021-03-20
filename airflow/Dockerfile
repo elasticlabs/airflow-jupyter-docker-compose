@@ -205,7 +205,7 @@ RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-leaflet && \
     #jupyter labextension install @mflevine/jupyterlab_html && \
     jupyter labextension install jupyterlab-plotly && \
-    jupyter labextension install jupyterlab_voyager && \
+    #jupyter labextension install jupyterlab_voyager && \
     jupyter lab build -y && \
     jupyter lab clean -y && \
     npm cache clean --force && \

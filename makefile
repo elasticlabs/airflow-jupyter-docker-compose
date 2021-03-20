@@ -6,9 +6,10 @@ SHELL         = /bin/bash
 .SHELLFLAGS   = -o pipefail -c
 
 # Variables initialization from .env file
-DC_PROJECT?=$(shell cat .env | sed 's/^*=//')
-AIRFLOW_URL?=$(shell grep LETSENCRYPT_HOST docker-compose.yml | sed 's/\=/ /' | awk '{print $3}')
-
+DC_PROJECT?=$(shell cat .env | grep COMPOSE_PROJECT_NAME | sed 's/^*=//')
+AIRFLOW_URL?=$(shell cat .env | grep VIRTUAL_HOST | sed 's/.*=//')
+CURRENT_DIR?= $(shell pwd)
+AIRFLOW_VOLUMES?=$(shell docker-compose config --volumes)
 
 # Every command is a PHONY, to avoid file naming confliction -> strengh comes from good habits!
 .PHONY: help
@@ -26,33 +27,51 @@ help:
 
 .PHONY: up
 up:
-	@echo "[INFO] Building the Airflow stack"
-	@echo "[INFO] The following URL is detected : $(AIRFLOW_URL). It should be reachable for proper operation"
+	@bash ./.utils/message.sh info "[INFO] Building the Airflow stack"
+	@bash ./.utils/message.sh info "[INFO] The following URL is detected : $(AIRFLOW_URL). It should be reachable for proper operation"
 	nslookup $(AIRFLOW_URL) && echo "        -> nslookup OK!"
 	docker-compose -f docker-compose.yml up -d --build
+	@make urls
 
 .PHONY: down
 down:
-	@echo "[INFO] Bringing done the Airflow stack"
+	@bash ./.utils/message.sh info "[INFO] Bringing done the Airflow stack"
 	docker-compose -f docker-compose.yml down --remove-orphans
-	@echo "[INFO] Done. See (sudo make cleanup) for containers, images, and static volumes cleanup"
+	@bash ./.utils/message.sh info "[INFO] Done. See (sudo make cleanup) for containers, images, and static volumes cleanup"
 
 .PHONY: hard-cleanup
-hard-cleanup:
-	@echo "[INFO] Bringing done the Airflow stack"
+hard-cleanup: save-volumes-links
+	@bash ./.utils/message.sh info "[INFO] Bringing done the Airflow stack"
 	docker-compose -f docker-compose.yml down --remove-orphans
 	# 2nd : clean up all containers & images, without deleting static volumes
-	@echo "[INFO] Cleaning up containers & images"
+	@bash ./.utils/message.sh info "[INFO] Cleaning up containers & images"
 	docker system prune -a
 	# Delete all hosted persistent data available in volumes
-	@echo "[INFO] Cleaning up static volumes"
+	@bash ./.utils/message.sh info "[INFO] Cleaning up static volumes"
 	docker volume rm -f $(DC_PROJECT)pgadmin_data
 	docker volume rm -f $(DC_PROJECT)airflow_dags
 	docker volume rm -f $(DC_PROJECT)airflow_scripts
 	docker volume rm -f $(DC_PROJECT)jupyter_notebooks
 	# Remove all dangling docker volumes
-	@echo "[INFO] Remove all dangling docker volumes"
+	@bash ./.utils/message.sh info "[INFO] Remove all dangling docker volumes"
 	docker volume rm $(shell docker volume ls -qf dangling=true)
+
+.PHONY: save-volumes-links
+save-volumes-links:
+	@bash ./.utils/volumes_links.sh save $(CURRENT_DIR) $(DC_PROJECT) $(AIRFLOW_VOLUMES)
+
+.PHONY: build-volumes-links
+build-volumes-links:
+	@bash ./.utils/volumes_links.sh build $(CURRENT_DIR) $(DC_PROJECT) $(AIRFLOW_VOLUMES)
+
+.PHONY: urls
+urls:
+	@bash ./.utils/message.sh headline "[INFO] You may now access your project at the following URLs:"
+	@bash ./.utils/message.sh link "Airflow WebGUI:  https://${APP_BASEURL}/"
+	@bash ./.utils/message.sh link "Flower GUI:      https://${APP_BASEURL}/flower/"
+	@bash ./.utils/message.sh link "PGAdmin:         https://${APP_BASEURL}/pgadmin/"
+	@bash ./.utils/message.sh link "JupyterLab:      https://${APP_BASEURL}/jupyter/"
+	@echo ""
 
 .PHONY: pull
 pull: 
@@ -60,7 +79,7 @@ pull:
 
 .PHONY: update
 update: pull up wait
-	docker image prune
+	docker system prune -a
 
 .PHONY: wait
 wait: 

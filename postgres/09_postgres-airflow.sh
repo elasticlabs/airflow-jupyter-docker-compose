@@ -1,44 +1,27 @@
-#!/bin/sh
-
+#!/bin/bash
 set -e
 
-# Perform all actions as $POSTGRES_USER
-export PGUSER="$AIRFLOW_USER"
-export PGDB="$AIRFLOW_DB"
-export PGDB_PASSWD="$AIRFLOW_PASSWORD"
-
-# 
-# Create airflow database : 
-# See https://airflow.apache.org/docs/apache-airflow/stable/howto/set-up-database.html#setting-up-a-postgresql-database for more information
-"${psql[@]}" <<- 'EOSQL'
-    DO
-    $do$
-    BEGIN
-    IF NOT EXISTS (
-        SELECT
-        FROM pg_database 
-        WHERE datname = '$PGDB') THEN
-        
-        CREATE DATABASE '$PGDB');
-    END IF;
-    END
-    $do$;
+#
+# Create the "airflow" database and grant all access to "postgres" user 
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    CREATE DATABASE $AIRFLOW_DB;
+    GRANT ALL PRIVILEGES ON DATABASE $AIRFLOW_DB TO $POSTGRES_USER;
 EOSQL
 
 #
-# Create and grant access rights to user $PGUSER
-"${psql[@]}" --dbname="$PGDB" <<-'EOSQL'
-		DO
+# Create role "airflow" if needed and grant it all accesses to "airflow" database
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$AIRFLOW_DB" <<-EOSQL
+    DO
         $do$
         BEGIN
         IF NOT EXISTS (
             SELECT                       -- SELECT list can stay empty for this
             FROM   pg_catalog.pg_roles
-            WHERE  rolname = '$PGUSER') THEN
+            WHERE  rolname = '$AIRFLOW_USER') THEN
 
-            CREATE ROLE $PGUSER LOGIN PASSWORD '$PGDB_PASSWORD';
-            GRANT ALL PRIVILEGES ON DATABASE '$PGDB' TO '$PGUSER';
-            ALTER ROLE '$PGUSER' SET search_path = airflow, geoserver;
+            CREATE ROLE $AIRFLOW_USER LOGIN PASSWORD '$AIRFLOW_PASSWORD';
+            GRANT ALL PRIVILEGES ON DATABASE '$AIRFLOW_DB' TO '$AIRFLOW_USER';
+            -- ALTER ROLE '$AIRFLOW_USER' SET search_path = airflow, geoserver, postgres;
         END IF;
         END
         $do$;

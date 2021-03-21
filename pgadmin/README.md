@@ -10,3 +10,9 @@ You can customize this deployemnt using the following variables in the `.env` fi
 |---|---|
 | `PGADMIN_DEFAULT_EMAIL` | Customize user login email address |
 | `PGADMIN_DEFAULT_PASSWORD` | Set to `SuperSecret` by default; Modify it before deployment |
+
+## Add a new server in PgAdmin:
+* **Host name/address** `postgres`
+* **Port** `5432`
+* **Username** as `POSTGRES_USER`, by default: `postgres`
+* **Password** as `POSTGRES_PASSWORD`, by default `changeme`

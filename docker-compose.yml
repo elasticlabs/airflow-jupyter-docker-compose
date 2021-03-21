@@ -174,8 +174,9 @@ services:
     build:
       context: ./pgadmin
     environment: 
-      - PGADMIN_DEFAULT_EMAIL=${COMPOSE_PROJECT_NAME}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE='False'
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - '/tmp/servers.json:/servers.json'
@@ -191,7 +192,7 @@ services:
       - "5432" 
     stdin_open: true
     env_file: 
-      - ./postgis/.env
+      - ./postgres/.env
     volumes:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups

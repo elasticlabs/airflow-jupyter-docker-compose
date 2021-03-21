@@ -28,6 +28,6 @@ RUN apt-get -y --purge autoremove  \
 # -> https://hub.docker.com/_/postgres (Initialzation scripts)
 RUN mkdir -p /docker-entrypoint-initdb.d
 COPY ./09_postgres-airflow.sh /docker-entrypoint-initdb.d/09_postgres-airflow.sh
-COPY ./10_postgis.sh /docker-entrypoint-initdb.d/10_postgis.sh
+COPY ./10_geoserver.sh /docker-entrypoint-initdb.d/10_geoserver.sh
 COPY ./update-postgis.sh /usr/local/bin/update-postgis.sh
 RUN chmod +x /usr/local/bin/update-postgis.sh

@@ -4,9 +4,8 @@ ENV SHELL /bin/bash
 USER root
 
 # Conda install required variables
-# PYTHON_VERSION : version without separator "."
-ARG PYTHON_VERSION=38
-ARG CONDA_PYTHON_VERSION=3
+# CONDA_PYTHON_VERSION : version without separator "."
+ARG CONDA_PYTHON_VERSION=38
 ARG CONDA_DIR=/opt/conda
 
 # Install conda and check the MD5 sum provided on the download site
@@ -35,12 +34,12 @@ COPY fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Download miniconda and validate checksum
-RUN wget https://repo.continuum.io/miniconda/Miniconda3-py${PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "${miniconda_checksum} *Miniconda3-py${PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
+RUN wget https://repo.continuum.io/miniconda/Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
+    echo "${miniconda_checksum} *Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
 
 #Deploy miniconda
-RUN /bin/bash Miniconda3-py${PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
-    rm Miniconda3-py${PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
+RUN /bin/bash Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
+    rm Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
     # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
     echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     conda config --system --prepend channels conda-forge && \

@@ -41,7 +41,6 @@ services:
     env_file:
       - ./airflow/.env
     volumes:
-      - airflow_config:/usr/local/airflow/
       - airflow_dags:/usr/local/airflow/dags
       - airflow_scripts:/usr/local/airflow/scripts
       - /var/run/docker.sock:/tmp/docker.sock:ro

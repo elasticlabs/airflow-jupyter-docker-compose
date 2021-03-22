@@ -27,7 +27,6 @@ services:
     restart: unless-stopped
     expose:
       - "8080"
-    image: airflow-admin4${COMPOSE_PROJECT_NAME}:latest
     build:
       context: ./airflow
     depends_on:
@@ -42,6 +41,7 @@ services:
     env_file:
       - ./airflow/.env
     volumes:
+      - airflow_config:/usr/local/airflow/
       - airflow_dags:/usr/local/airflow/dags
       - airflow_scripts:/usr/local/airflow/scripts
       - /var/run/docker.sock:/tmp/docker.sock:ro
@@ -74,7 +74,6 @@ services:
   scheduler:
     container_name: ${COMPOSE_PROJECT_NAME}_scheduler
     restart: unless-stopped
-    image: ${COMPOSE_PROJECT_NAME}_scheduler:latest
     build:
       context: ./airflow
     depends_on:
@@ -94,9 +93,8 @@ services:
       - airflow
   
   worker1:
-    container_name: ${COMPOSE_PROJECT_NAME}-worker_a4
+    container_name: ${COMPOSE_PROJECT_NAME}-worker_a
     restart: unless-stopped
-    image: ${COMPOSE_PROJECT_NAME}_worker1:latest
     build:
       context: ./airflow
     restart: always
@@ -116,9 +114,8 @@ services:
       - airflow
 
   worker2:
-    container_name: ${COMPOSE_PROJECT_NAME}-worker_b4
+    container_name: ${COMPOSE_PROJECT_NAME}-worker_b
     restart: unless-stopped
-    image: ${COMPOSE_PROJECT_NAME}_worker2:latest
     build:
       context: ./airflow
     restart: always
@@ -145,7 +142,6 @@ services:
       - airflow
 
   jupyter:
-    image: jupyter-lab4${COMPOSE_PROJECT_NAME}:latest
     container_name: jupyter-lab4${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
     expose: 

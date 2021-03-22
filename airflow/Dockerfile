@@ -42,36 +42,25 @@ RUN /bin/bash Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x8
     rm Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh
 
 # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
-ENV PATH=/miniconda/bin:$PATH
-RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
-    conda config --system --prepend channels conda-forge && \
-    conda config --system --set auto_update_conda false && \
-    conda config --system --set show_channel_urls true && \
-    conda config --system --set channel_priority strict && \
-    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --repodata-fn repodata.json --yes python=$PYTHON_VERSION; fi && \
-    conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
-    conda install --repodata-fn repodata.json --quiet --yes "conda=${CONDA_VERSION}" && \
-    conda install --repodata-fn repodata.json --quiet --yes pip && \
-    conda update --all --quiet --yes && \
-    conda clean --all -f -y && \
-    rm -rf ${HOME}/.cache/yarn && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions ${HOME}
+ENV PATH=${CONDA_DIR}/bin:$PATH
+# RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
+#     conda config --system --prepend channels conda-forge && \
+#    conda config --system --set auto_update_conda false && \
+#    conda config --system --set show_channel_urls true && \
+#    conda config --system --set channel_priority strict && \
+#    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --repodata-fn repodata.json --yes python=$PYTHON_VERSION; fi && \
+#    conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
+#    conda install --repodata-fn repodata.json --quiet --yes "conda=${CONDA_VERSION}" && \
+#    conda install --repodata-fn repodata.json --quiet --yes pip && \
+#    conda update --all --quiet --yes && \
+#    conda clean --all -f -y && \
+#    rm -rf ${HOME}/.cache/yarn && \
+#    fix-permissions $CONDA_DIR && \
+#    fix-permissions ${HOME}
     # Activate conda environment
     #ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     #echo "conda activate base" >> ~/.bashrc
-
-# files across image layers when the permissions change
-RUN conda install --repodata-fn repodata.json --quiet --yes \
-    9' && \
-    conda clean --all -f -y && \
-    npm cache clean --force && \
-    jupyter notebook --generate-config && \
-    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
-    rm -rf ${HOME}/.cache/yarn && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions ${HOME}
 
 # Deploy required libraries using miniconda environment
 # For reference -> https://docs.anaconda.com/mkl-optimizations/
@@ -87,24 +76,25 @@ COPY packages packages
 RUN conda env create -f packages/environment_pytorch.yml
 
 # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html
-RUN conda clean -tipsy \
-    && fix-permissions $CONDA_DIR \
-    && fix-permissions ${HOME} \
-    && find /opt/conda/ -follow -type f -name '*.a' -delete \
-    && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
-    && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
-    && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
+RUN conda clean -tipsy && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions ${HOME} && \
+    find /opt/conda/ -follow -type f -name '*.a' -delete && \
+    find /opt/conda/ -follow -type f -name '*.pyc' -delete && \
+    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
+    find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
 # Jupyter
 # Activate useful extensions
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
-    jupyter nbextensions_configurator enable \
-    jupyter nbextension enable collapsible_headings/main \
-    jupyter nbextension enable rubberband/main \
-    jupyter nbextension enable toc2/main \
-    jupyter nbextension enable codefolding/main \
-    jupyter nbextension enable scratchpad/main \
-    jupyter nbextension enable --py widgetsnbextension
+    jupyter nbextensions_configurator enable && \
+    jupyter nbextension enable collapsible_headings/main && \
+    jupyter nbextension enable rubberband/main && \
+    jupyter nbextension enable toc2/main && \
+    jupyter nbextension enable codefolding/main && \
+    jupyter nbextension enable scratchpad/main && \
+    jupyter nbextension enable --py widgetsnbextension && \
+    jupyter notebook --generate-config
 
 # JupyterLab 
 # Useful extensions deployment. Check this URL for most recent compatibilities
@@ -121,8 +111,14 @@ RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no
     npm cache clean --force && \
     rm -rf "${HOME}/.cache/yarn" && \
     rm -rf "${HOME}/.node-gyp" && \
+    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
+    rm -rf ${HOME}/.cache/yarn && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "${HOME}"
+
+
+    
+
 
 #
 # Package our CONDA environment for deployment on target container

@@ -5,11 +5,11 @@ USER root
 
 # Conda install required variables
 # CONDA_PYTHON_VERSION : version without separator "."
-ARG CONDA_PYTHON_VERSION=38
+ARG CONDA_PYTHON_VERSION=37
 ARG CONDA_DIR=/opt/conda
 
 # Install conda and check the MD5 sum provided on the download site
-# Check https://repo.anaconda.com/miniconda/
+# Check https://repo.continuum.io/miniconda/
 ENV MINICONDA_VERSION="4.9.2"
 ARG miniconda_checksum="3143b1116f2d466d9325c206b7de88f7"
 
@@ -39,9 +39,11 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-py${CONDA_PYTHON_VERSION
 
 #Deploy miniconda
 RUN /bin/bash Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
-    rm Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
-    echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
+    rm Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh
+
+# Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
+ENV PATH=/miniconda/bin:$PATH
+RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     conda config --system --prepend channels conda-forge && \
     conda config --system --set auto_update_conda false && \
     conda config --system --set show_channel_urls true && \
@@ -81,6 +83,7 @@ RUN conda install --repodata-fn repodata.json --quiet --yes \
 
 # Deploy all packages and requirements into a clean Conda environment
 # as defined in the "packages/environment-jupyter-airflow.yml"
+COPY packages packages
 RUN conda env create -f packages/environment_pytorch.yml
 
 # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html

@@ -50,13 +50,8 @@ RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     conda config --system --set channel_priority strict && \
     # For reference -> https://docs.anaconda.com/mkl-optimizations/
     conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas \
-    conda-pack && \
-    #
-    conda update --all --quiet --yes && \
-    conda clean --all -f -y && \
-    rm -rf ${HOME}/.cache/yarn && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions ${HOME}
+    conda-pack && \ 
+    conda update --all --quiet --yes
 
 # Deploy all packages and requirements into a clean Conda environment
 # as defined in the "packages/environment-jupyter-airflow.yml"
@@ -66,13 +61,14 @@ RUN conda env create -f packages/environment-jupyter-airflow.yml \
     && conda activate jupyter-airflow
 
 # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html
-#RUN conda clean -tipsy && \
-#    fix-permissions $CONDA_DIR && \
-#    fix-permissions ${HOME} && \
-#    find /opt/conda/ -follow -type f -name '*.a' -delete && \
-#    find /opt/conda/ -follow -type f -name '*.pyc' -delete && \
-#    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
-#    find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
+RUN conda clean -i -p -c -f -y && \
+    rm -rf ${HOME}/.cache/yarn && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions ${HOME} && \
+    find /opt/conda/ -follow -type f -name '*.a' -delete && \
+    find /opt/conda/ -follow -type f -name '*.pyc' -delete && \
+    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
+    find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
 # Jupyter
 # Activate useful extensions

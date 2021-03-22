@@ -1,6 +1,6 @@
-name: pytorch
+name: jupyter-airflow
 dependencies:
-  - python=3.8
+  - python=3.7
   - dask
   - matplotlib-base
   - numpy

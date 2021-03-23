@@ -1,6 +1,9 @@
 # airflow-jupyter-docker-compose
 Orchestration of data science and earth observation models in Apache Airflow, scale-up with Celery Executor, experiment with jupyter notebook using a docker containers composition. Based on `https://github.com/puckel/docker-airflow` works.
 
+## Dependencies 
+* docker-compose : 1.27.4
+
 ## Commands to deploy and manage the stack behind an HTTPS automated proxy: 
 * Ensure that appropriate DNS record for `airflow` base URL is created and resolve well. 
 * Ensure that your automated nginx-proxy (e.g. ) is up and running.

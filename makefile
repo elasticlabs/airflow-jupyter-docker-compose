@@ -30,7 +30,12 @@ up:
 	@bash ./.utils/message.sh info "[INFO] Building the Airflow stack"
 	@bash ./.utils/message.sh info "[INFO] The following URL is detected : $(AIRFLOW_URL). It should be reachable for proper operation"
 	nslookup $(AIRFLOW_URL) && echo "        -> nslookup OK!"
-	docker-compose -f docker-compose.yml up -d --build
+	# Set server_name in reverse proxy
+	sed -i "s/changeme/$(AIRFLOW_URL)/" .proxy/airflow-stack.conf
+	# Build the stack
+	docker-compose -f docker-compose.yml build
+	# Run the stack
+	docker-compose -f docker-compose.yml up -d
 	@make urls
 
 .PHONY: down

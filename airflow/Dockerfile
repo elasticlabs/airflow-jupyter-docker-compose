@@ -47,4 +47,5 @@ USER airflow
 RUN airflow db init
 
 # Finally, autorise airflow and flower to run behind a proxy
-RUN echo "enable_proxy_fix = True" >> airflow.cfg
+RUN echo "enable_proxy_fix = True" >> airflow.cfg && \
+    sed -i 's/flower_url_prefix \=/c\flower_url_prefix \=\/flower/' airflow.cfg

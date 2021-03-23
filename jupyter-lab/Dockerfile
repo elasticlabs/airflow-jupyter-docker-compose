@@ -14,6 +14,7 @@ ARG CONDA_DIR=/opt/conda
 # A few basics
 ENV SHELL /bin/bash
 ARG NB_USER="airflow"
+# Mapping for the "fix permissions script"
 ARG NB_UID=$AIRFLOW_UID
 ARG NB_GID=$AIRFLOW_GID
 
@@ -72,7 +73,7 @@ ENV CONDA_DIR=/opt/conda \
     HOME=${AIRFLOW_HOME}
     
 # Copy a script that we will use to correct permissions after running certain commands
-COPY fix-permissions /usr/local/bin/fix-permissions
+COPY ../.utils/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
@@ -89,7 +90,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     chown $NB_USER:$NB_GID $CONDA_DIR && \
     fix-permissions $HOME && \
     fix-permissions $CONDA_DIR
-
 
 ENV PATH=${CONDA_DIR}/bin:$PATH
 

@@ -26,7 +26,10 @@ RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10 \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
 
-	
+# Copy a script that we will use to correct permissions after running certain commands
+COPY ../.utils/fix-permissions /usr/local/bin/fix-permissions
+RUN chmod a+rx /usr/local/bin/fix-permissions
+
 # Deploy extra packages
 RUN pip install apache-airflow[${AIRFLOW_EXTRAS}]
 
@@ -38,3 +41,7 @@ ENV SHELL=/bin/bash \
     LANGUAGE=en_US.UTF-8
 
 USER airflow
+
+# Now we initialize the PostgreSQL backend
+# https://airflow.apache.org/docs/apache-airflow/stable/howto/set-up-database.html#database-uri
+RUN airflow db init

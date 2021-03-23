@@ -21,7 +21,7 @@ x-airflow-common:
     - airflow_scripts:/opt/airflow/scripts
     - airflow_logs:/opt/airflow/logs
     - airflow_plugins:/opt/airflow/plugins
-  user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-1000}"
+  user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
   depends_on:
     redis:
       condition: service_healthy
@@ -57,9 +57,12 @@ services:
     <<: *airflow-common
     container_name: ${COMPOSE_PROJECT_NAME}_webserver
     command: webserver
-    restart: unless-stopped
+    depends_on:
+      - airflow-proxy
+      - airflow-scheduler
     expose:
       - "8080"
+    restart: unless-stopped
 
   flower:
     <<: *airflow-common
@@ -73,6 +76,9 @@ services:
     <<: *airflow-common
     container_name: ${COMPOSE_PROJECT_NAME}_scheduler
     command: scheduler
+    depends_on:
+      - airflow-worker-1
+      - airflow-worker-2
     restart: unless-stopped
 
   airflow-worker-1:
@@ -99,7 +105,7 @@ services:
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
 
   jupyter:
-    container_name: jupyter-lab4${COMPOSE_PROJECT_NAME}
+    container_name: ${COMPOSE_PROJECT_NAME}_jupyter-lab
     restart: unless-stopped
     expose: 
       - "8888"
@@ -124,6 +130,9 @@ services:
       - "80"
     build:
       context: ./pgadmin
+    depends_on: 
+      - postgres
+      - airflow-proxy
     environment: 
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}

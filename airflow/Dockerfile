@@ -27,7 +27,7 @@ RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10 \
     && locale-gen
 
 # Copy a script that we will use to correct permissions after running certain commands
-COPY ../.utils/fix-permissions /usr/local/bin/fix-permissions
+COPY fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Deploy extra packages

@@ -73,7 +73,7 @@ ENV CONDA_DIR=/opt/conda \
     HOME=${AIRFLOW_HOME}
     
 # Copy a script that we will use to correct permissions after running certain commands
-COPY ../.utils/fix-permissions /usr/local/bin/fix-permissions
+COPY fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER

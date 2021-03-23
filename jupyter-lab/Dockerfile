@@ -1,69 +1,78 @@
-FROM puckel/docker-airflow:1.10.9
+FROM apache/airflow:2.0.1-python3.7
 
+# Apache airflow extras selection
+ARG AIRFLOW_EXTRAS="async,amazon,celery,docker,dask,elasticsearch,ftp,http,google,postgres,redis,sftp,ssh,statsd,virtualenv"
+# Conda version and checksum
+# Check https://repo.continuum.io/miniconda/
+ENV MINICONDA_VERSION="4.9.2"
+ARG miniconda_checksum="3143b1116f2d466d9325c206b7de88f7"
+# Conda install required variables
+# CONDA_PYTHON_VERSION : version without separator "."
+ARG CONDA_PYTHON_VERSION=37
+ARG CONDA_DIR=/opt/conda
+
+# A few basics
 ENV SHELL /bin/bash
 ARG NB_USER="airflow"
 ARG NB_UID="1000"
 ARG NB_GID="1000"
 
 USER root
-RUN export PATH=/usr/local/airflow/.local/bin:$PATH \
-    && pip install --upgrade pip \
-    && pip install pyowm==3.1.1 \
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        git \
+        vim-tiny \
+        nano-tiny \
+        wget \
+        unzip \
+        bzip2 \
+        build-essential \
+        ca-certificates \
+        curl \
+        sudo \
+        jq \
+        locales \
+        fonts-liberation \
+        ffmpeg \
+        dvipng \
+        cm-super \
+        inkscape \
+        jed \
+        libsm6 \
+        libxext-dev \
+        libxrender1 \
+        lmodern \
+        netcat \
+        # ---- nbconvert dependencies ----
+        texlive-xetex \
+        texlive-fonts-recommended \
+        texlive-plain-generic \
+        # ----
+        tzdata \
+    && apt-get autoremove -yqq --purge \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10 \
+    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+    && locale-gen
+
+# Deploy extra packages
+RUN pip install pyowm==3.1.1 \
     && pip install ecmwf-api-client \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
-    && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc \
-    && apt-get update --fix-missing \
-    && apt-get install -yq \
-       build-essential \
-       emacs-nox \
-       vim-tiny \
-       git \
-       inkscape \
-       jed \
-       libsm6 \
-       libxext-dev \
-       libxrender1 \
-       lmodern \
-       netcat \
-       # ---- nbconvert dependencies ----
-       texlive-xetex \
-       texlive-fonts-recommended \
-       texlive-plain-generic \
-       # ----
-       tzdata \
-       unzip \
-       nano-tiny \
-       wget \
-       bzip2 \
-       ca-certificates \
-       curl \
-       git \
-       sudo \
-       locales \
-       fonts-liberation \
-       ffmpeg \
-       dvipng \
-       cm-super \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc
 
-RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10
-
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
-    locale-gen
-
-# Configure Conda environment
+# Configure some required variables
 ENV CONDA_DIR=/opt/conda \
     SHELL=/bin/bash \
     NB_USER=$NB_USER \
-    NB_UID=$NB_UID \
-    NB_GID=$NB_GID \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     HOME=${AIRFLOW_HOME}
     
-ENV PATH=${CONDA_DIR}/bin:$PATH
-
 # Copy a script that we will use to correct permissions after running certain commands
 COPY fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
@@ -74,7 +83,7 @@ RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashr
    # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
    echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc 
 
-# Make sur user and conda directories are writable by the `users` group.
+# Make sure user and conda directories are writable by the `users` group.
 RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
@@ -84,30 +93,27 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     fix-permissions $CONDA_DIR
 
 USER $NB_UID
-# Install conda as airflow and check the MD5 sum provided on the download site
-ARG miniconda_checksum="d63adf39f2c220950a063e0529d4ff74"
-# Check https://repo.anaconda.com/miniconda/
-# Miniconda archive to install
-ENV MINICONDA_VERSION="4.8.3" \
-    CONDA_VERSION="4.9.0"
 
+# Download miniconda and validate checksum
 WORKDIR /tmp
-RUN wget https://repo.continuum.io/miniconda/Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "${miniconda_checksum} *Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
-RUN /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
-    rm Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
-    echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
+RUN wget https://repo.continuum.io/miniconda/Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
+    echo "${miniconda_checksum} *Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
+
+#Deploy miniconda
+RUN /bin/bash Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
+    rm Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh
+
+# Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
+ENV PATH=${CONDA_DIR}/bin:$PATH
+RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     conda config --system --prepend channels conda-forge && \
     conda config --system --set auto_update_conda false && \
     conda config --system --set show_channel_urls true && \
     conda config --system --set channel_priority strict && \
-    if [ ! $PYTHON_VERSION = 'default' ]; then conda install --repodata-fn repodata.json --yes python=$PYTHON_VERSION; fi && \
-    conda list python | grep '^python ' | tr -s ' ' | cut -d '.' -f 1,2 | sed 's/$/.*/' >> $CONDA_DIR/conda-meta/pinned && \
-    conda install --repodata-fn repodata.json --quiet --yes "conda=${CONDA_VERSION}" && \
-    conda install --repodata-fn repodata.json --quiet --yes pip && \
-    conda update --all --quiet --yes && \
-    conda clean --all -f -y && \
+    # For reference -> https://docs.anaconda.com/mkl-optimizations/
+    conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas \
+    conda update --all --quiet --yes \
+    conda clean -a -f -y && \
     rm -rf ${HOME}/.cache/yarn && \
     fix-permissions $CONDA_DIR && \
     fix-permissions ${HOME}
@@ -125,10 +131,6 @@ RUN conda install --repodata-fn repodata.json --quiet --yes 'tini=0.18.0' && \
 
 # Install Jupyter Notebook, Lab, and Hub
 # Generate a notebook server config
-# Cleanup temporary files
-# Correct permissions
-# Do all this in a single RUN command to avoid duplicating all of the
-# files across image layers when the permissions change
 RUN conda install --repodata-fn repodata.json --quiet --yes \
     'notebook=6.1.4' \
     'jupyterhub=1.2.1' \
@@ -141,49 +143,52 @@ RUN conda install --repodata-fn repodata.json --quiet --yes \
     fix-permissions $CONDA_DIR && \
     fix-permissions ${HOME}
 
-# Deploy required libraries using miniconda environment
-# For reference -> https://docs.anaconda.com/mkl-optimizations/
-RUN conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas
 
 # Essential python data analysis librairies
 RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
-    dask \
-    matplotlib-base \
-    numpy \
-    pandas \
-    panel \ 
-    pytables \
-    scipy \
-    scikit-image \
-    scikit-learn \
-    seaborn \
-    statsmodels \
-    xarray \
-    # Jupyter and Airflow framework specific librairie
-    appmode \
-    ipywidgets \
-    ipyleaflet \
-    papermill \
-    psycopg2 \
-    cloudpickle \
-    # EO / Weather specific
-    bokeh \
-    bottleneck \
-    cartopy \
-    cmocean \
-    descartes \
-    geos \
-    geopandas \
-    iris \
-    iris-grib \
-    # metpy \
-    # metview-batch \
-    magics \
-    netcdf4 \
-    protobuf \
-    pynio \
-    shapely \
-    siphon \
+        dask \
+        matplotlib-base \
+        numpy \
+        pandas \
+        panel  \
+        pytables \
+        scipy \
+        scikit-image \
+        scikit-learn \
+        seaborn \
+        statsmodels \
+        xarray \
+        # Jupyter and Airflow framework specific librairie
+        jupyter \
+        jupyterhub \
+        jupyterlab \
+        appmode \
+        notebook \
+        ipywidgets \
+        ipyleaflet \
+        jupyter_nbextensions_configurator \
+        jupyter_contrib_nbextensions \
+        papermill \
+        psycopg2 \
+        cloudpickle \
+        # EO / Weather specific
+        bokeh \
+        bottleneck \
+        cartopy \
+        cmocean \
+        descartes \
+        geos \
+        geopandas \
+        iris \
+        iris-grib \
+        # metpy
+        # metview-batch
+        magics \
+        netcdf4 \
+        protobuf \
+        pynio \
+        shapely \
+        siphon \
     # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html
     && conda clean -tipsy \
     && fix-permissions $CONDA_DIR \
@@ -193,12 +198,22 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
     && find /opt/conda/lib/python*/site-packages/bokeh/server/static -follow -type f -name '*.js' ! -name '*.min.js' -delete
 
-# Activate ipywidgets extension in the environment that runs the notebook server
+# Jupyter
+# Activate useful extensions
 RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
-    # Also activate ipywidgets and other useful extensions for JupyterLab
-    # Check this URL for most recent compatibilities
-    # https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build && \
+    jupyter nbextensions_configurator enable && \
+    jupyter nbextension enable collapsible_headings/main && \
+    jupyter nbextension enable rubberband/main && \
+    jupyter nbextension enable toc2/main && \
+    jupyter nbextension enable codefolding/main && \
+    jupyter nbextension enable scratchpad/main && \
+    jupyter nbextension enable --py widgetsnbextension && \
+    jupyter notebook --generate-config
+
+# JupyterLab 
+# Useful extensions deployment. Check this URL for most recent compatibilities
+# https://github.com/jupyter-widgets/ipywidgets/tree/master/packages/jupyterlab-manager
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager@^2.0.0 --no-build && \
     jupyter labextension install @bokeh/jupyter_bokeh@^2.0.0 --no-build && \
     jupyter labextension install jupyter-matplotlib@^0.7.2 --no-build && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-leaflet && \
@@ -210,6 +225,8 @@ RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
     npm cache clean --force && \
     rm -rf "${HOME}/.cache/yarn" && \
     rm -rf "${HOME}/.node-gyp" && \
+    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
+    rm -rf ${HOME}/.cache/yarn && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "${HOME}"
 
@@ -221,13 +238,11 @@ RUN git clone https://github.com/PAIR-code/facets.git && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "${HOME}"
 
-# Import matplotlib the first time to build the font cache.
+# Import matplotlib once to build the font cache.
 ENV XDG_CACHE_HOME="${HOME}/.cache/"
 
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions "${HOME}"
-
-USER $NB_UID
 
 WORKDIR $HOME
 # Copy pre generated Jupyter configuration file
@@ -241,16 +256,12 @@ RUN for dir in dags notebooks; \
          echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
       done;
 
-VOLUME ["/usr/local/airflow/dags", "/usr/local/airflow/notebooks"]
 ENTRYPOINT [ "tini" , "-g" , "--"]
 CMD ["start-notebook.sh"]
 
 # Copy local files as late as possible to avoid cache busting
 #COPY start.sh start-notebook.sh start-singleuser.sh /usr/local/bin/
 COPY jupyter_notebook_config.py /etc/jupyter/
-
-# For airflow, copy airfow config file
-COPY airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 
 # Fix permissions on /etc/jupyter as root
 USER root

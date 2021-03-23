@@ -1,10 +1,42 @@
-version: '3.7'
+version: '3'
+
+#
+# Airflow software stack common config
+#    - The "x-airflow-common" block sets the environment many containers share
+x-airflow-common:
+  &airflow-common
+  build:
+    context: ./airflow
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_PASSWORD:-airflow}@postgres/airflow_db
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:${AIRFLOW_PASSWORD:-airflow}@postgres/airflow_db
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: '46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho='
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+  volumes:
+    - airflow_dags:/opt/airflow/dags
+    - airflow_scripts:/opt/airflow/scripts
+    - airflow_logs:/opt/airflow/logs
+    - airflow_plugins:/opt/airflow/plugins
+  user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-1000}"
+  depends_on:
+    airflow-proxy:
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+  networks:
+      - airflow
+
+#
+# Services begin here
 services:
-  #
-  # Proxy - HTTP entrypoint
   airflow-proxy:
-    image: nginx-proxy4${COMPOSE_PROJECT_NAME}:latest
-    container_name: nginx-proxy4${COMPOSE_PROJECT_NAME}
+    image: ${COMPOSE_PROJECT_NAME}_nginx-proxy:latest
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx-proxy
     restart: unless-stopped
     expose:
       - "80"
@@ -22,123 +54,50 @@ services:
       - https_revproxy
       - airflow
 
-  airflow:
-    container_name: airflow-admin4${COMPOSE_PROJECT_NAME}
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: ${COMPOSE_PROJECT_NAME}_webserver
+    command: webserver
     restart: unless-stopped
     expose:
       - "8080"
-    build:
-      context: ./airflow
-    depends_on:
-      - airflow-proxy
-      - postgres
-      - redis
-    environment:
-      - LOAD_EX=n
-      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-      - EXECUTOR=Celery
-      - PYTHONPATH=/usr/local/airflow
-    env_file:
-      - ./airflow/.env
-    volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    command: airflow webserver
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    networks:
-      - airflow
 
   flower:
-    container_name: ${COMPOSE_PROJECT_NAME}_celery-admin
-    restart: unless-stopped
+    <<: *airflow-common
+    container_name: ${COMPOSE_PROJECT_NAME}_celery-flower
+    command: celery flower
     expose:
       - "5555"
-    image: ${COMPOSE_PROJECT_NAME}_celery-admin:latest
-    build:
-      context: ./airflow
-    restart: always
-    depends_on:
-      - redis
-    environment:
-      - EXECUTOR=Celery
-    command: airflow flower -u flower
-    networks:
-      - airflow
+    restart: unless-stopped
 
-  scheduler:
+  airflow-scheduler:
+    <<: *airflow-common
     container_name: ${COMPOSE_PROJECT_NAME}_scheduler
+    command: scheduler
     restart: unless-stopped
-    build:
-      context: ./airflow
-    depends_on:
-      - airflow-proxy
-    volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
-    environment:
-      - LOAD_EX=n
-      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-      - EXECUTOR=Celery
-      - PYTHONPATH=/usr/local/airflow
-    command: airflow scheduler
-    env_file:
-      - ./airflow/.env
-    networks:
-      - airflow
-  
-  worker1:
-    container_name: ${COMPOSE_PROJECT_NAME}-worker_a
-    restart: unless-stopped
-    build:
-      context: ./airflow
-    restart: always
-    depends_on:
-      - scheduler
-    volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
-    environment:
-      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-      - EXECUTOR=Celery
-      - PYTHONPATH=/usr/local/airflow
-    command: airflow worker
-    env_file:
-      - ./airflow/.env
-    networks:
-      - airflow
 
-  worker2:
-    container_name: ${COMPOSE_PROJECT_NAME}-worker_b
+airflow-worker-1:
+    <<: *airflow-common
+    container_name: ${COMPOSE_PROJECT_NAME}_celery-worker-1
+    command: celery worker
     restart: unless-stopped
-    build:
-      context: ./airflow
-    restart: always
-    depends_on:
-      - scheduler
-    volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
+
+  airflow-worker-2:
+    <<: *airflow-common
+    container_name: ${COMPOSE_PROJECT_NAME}_celery-worker-2
+    command: celery worker
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: ${COMPOSE_PROJECT_NAME}_airflow-init
+    command: version
     environment:
-      - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
-      - EXECUTOR=Celery
-      - PYTHONPATH=/usr/local/airflow
-    command: airflow worker
-    env_file:
-      - ./airflow/.env
-    networks:
-      - airflow 
-  
-  redis:
-    container_name: ${COMPOSE_PROJECT_NAME}-redis
-    restart: unless-stopped
-    image: redis:5.0.5
-    networks:
-      - airflow
+      <<: *airflow-common-env
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
 
   jupyter:
     container_name: jupyter-lab4${COMPOSE_PROJECT_NAME}
@@ -146,23 +105,21 @@ services:
     expose: 
       - "8888"
     build:
-      context: ./airflow
+      context: ./jupyter-lab
     depends_on:
       - airflow-proxy
     volumes:
-      - airflow_dags:/usr/local/airflow/dags
-      - airflow_scripts:/usr/local/airflow/scripts
-      - jupyter_notebooks:/usr/local/airflow/notebooks
+      - airflow_dags:/opt/airflow/dags
+      - airflow_scripts:/opt/airflow/scripts
+      - jupyter_notebooks:/opt/airflow/notebooks
     environment:
-      - PYTHONPATH=/usr/local/airflow
+      - PYTHONPATH=/opt/airflow/
     command: jupyter lab --port 8888 --allow-root
-    env_file:
-      - ./airflow/.env
     networks:
       - airflow
 
   pgadmin:
-    container_name: ${COMPOSE_PROJECT_NAME}_postgressql-pgadmin
+    container_name: ${COMPOSE_PROJECT_NAME}_postgres-pgadmin
     restart: unless-stopped
     expose: 
       - "80"
@@ -174,25 +131,41 @@ services:
       - PGADMIN_CONFIG_SERVER_MODE='False'
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-      - '/tmp/servers.json:/servers.json'
     networks:
       - airflow
 
   postgres:
-    container_name: ${COMPOSE_PROJECT_NAME}_postgresql
-    restart: unless-stopped
+    image: postgres:13
+    container_name: ${COMPOSE_PROJECT_NAME}_postgres
     build:
       context: ./postgres
     expose:
-      - "5432" 
+      - "5432"
     stdin_open: true
     env_file: 
       - ./postgres/.env
     volumes:
-      - dbdata:/var/lib/postgresql/data
-      - dbbackups:/pg_backups
+      - postgres-dbdata:/var/lib/postgresql/data
+      - postgres-dbbackups:/pg_backups
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
     networks:
       - airflow
+
+  redis:
+    image: redis:latest
+    container_name: ${COMPOSE_PROJECT_NAME}_redis-broker
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+    restart: always
 
   geoserver:
     container_name: ${COMPOSE_PROJECT_NAME}_geoserver
@@ -213,14 +186,15 @@ services:
       - airflow
 
 volumes:
-  pgadmin_data:
+  postgres-dbdata:
+  postgres-dbbackups:
   airflow_dags:
   airflow_scripts:
+  airflow_logs:
+  airflow_plugins:
   jupyter_notebooks:
   geoserver-data:
   geoserver-exts:
-  dbdata:
-  dbbackups:
 
 # Networks. Note that the following network should be existing and connected 
 # to your nginx-proxy container for proper docker-gen containers detections, 

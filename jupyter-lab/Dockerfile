@@ -14,8 +14,8 @@ ARG CONDA_DIR=/opt/conda
 # A few basics
 ENV SHELL /bin/bash
 ARG NB_USER="airflow"
-ARG NB_UID="1000"
-ARG NB_GID="1000"
+ARG NB_UID=$AIRFLOW_UID
+ARG NB_GID=$AIRFLOW_GID
 
 USER root
 
@@ -27,7 +27,6 @@ RUN apt-get update \
         wget \
         unzip \
         bzip2 \
-        build-essential \
         ca-certificates \
         curl \
         sudo \
@@ -59,8 +58,7 @@ RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10 \
     && locale-gen
 
 # Deploy extra packages
-RUN pip install pyowm==3.1.1 \
-    && pip install ecmwf-api-client \
+RUN pip install pyowm \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.profile \
     && echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc
 
@@ -92,10 +90,13 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     fix-permissions $HOME && \
     fix-permissions $CONDA_DIR
 
+
+ENV PATH=${CONDA_DIR}/bin:$PATH
+
 USER $NB_UID
+WORKDIR ${CONDA_DIR}
 
 # Download miniconda and validate checksum
-WORKDIR /tmp
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh && \
     echo "${miniconda_checksum} *Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c -
 
@@ -105,15 +106,15 @@ RUN /bin/bash Miniconda3-py${CONDA_PYTHON_VERSION}_${MINICONDA_VERSION}-Linux-x8
 
 # Conda configuration see https://conda.io/projects/conda/en/latest/configuration.html
 ENV PATH=${CONDA_DIR}/bin:$PATH
-RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
+RUN echo "conda ${MINICONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     conda config --system --prepend channels conda-forge && \
     conda config --system --set auto_update_conda false && \
     conda config --system --set show_channel_urls true && \
     conda config --system --set channel_priority strict && \
     # For reference -> https://docs.anaconda.com/mkl-optimizations/
-    conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas \
-    conda update --all --quiet --yes \
-    conda clean -a -f -y && \
+    conda install --repodata-fn repodata.json --quiet --yes conda-forge::blas=*=openblas && \
+    conda update --all --quiet --yes && \
+    conda clean -tipy && \
     rm -rf ${HOME}/.cache/yarn && \
     fix-permissions $CONDA_DIR && \
     fix-permissions ${HOME}
@@ -122,19 +123,11 @@ RUN echo "conda ${CONDA_VERSION}" >> $CONDA_DIR/conda-meta/pinned && \
     #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     #echo "conda activate base" >> ~/.bashrc
 
-# Install Tini
-RUN conda install --repodata-fn repodata.json --quiet --yes 'tini=0.18.0' && \
-    conda list tini | grep tini | tr -s ' ' | cut -d ' ' -f 1,2 >> $CONDA_DIR/conda-meta/pinned && \
-    conda clean --all -f -y && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions ${HOME}
-
-# Install Jupyter Notebook, Lab, and Hub
-# Generate a notebook server config
 RUN conda install --repodata-fn repodata.json --quiet --yes \
-    'notebook=6.1.4' \
-    'jupyterhub=1.2.1' \
-    'jupyterlab=2.2.9' && \
+    notebook=6.1.4 \
+    ecmwf-api-client \
+    jupyterhub=1.2.1 \
+    jupyterlab=2.2.9 && \
     conda clean --all -f -y && \
     npm cache clean --force && \
     jupyter notebook --generate-config && \
@@ -142,7 +135,6 @@ RUN conda install --repodata-fn repodata.json --quiet --yes \
     rm -rf ${HOME}/.cache/yarn && \
     fix-permissions $CONDA_DIR && \
     fix-permissions ${HOME}
-
 
 # Essential python data analysis librairies
 RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-installed \
@@ -159,11 +151,7 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
         statsmodels \
         xarray \
         # Jupyter and Airflow framework specific librairie
-        jupyter \
-        jupyterhub \
-        jupyterlab \
         appmode \
-        notebook \
         ipywidgets \
         ipyleaflet \
         jupyter_nbextensions_configurator \
@@ -189,6 +177,7 @@ RUN conda install --repodata-fn repodata.json -c conda-forge --yes --freeze-inst
         pynio \
         shapely \
         siphon \
+        tini \
     # Cleanup tasks as from https://jcristharif.com/conda-docker-tips.html
     && conda clean -tipsy \
     && fix-permissions $CONDA_DIR \
@@ -208,7 +197,11 @@ RUN jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
     jupyter nbextension enable codefolding/main && \
     jupyter nbextension enable scratchpad/main && \
     jupyter nbextension enable --py widgetsnbextension && \
-    jupyter notebook --generate-config
+    # jupyter notebook --generate-config && \
+    rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
+    rm -rf ${HOME}/.cache/yarn && \
+    fix-permissions $CONDA_DIR && \
+    fix-permissions ${HOME}
 
 # JupyterLab 
 # Useful extensions deployment. Check this URL for most recent compatibilities
@@ -247,13 +240,13 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
 WORKDIR $HOME
 # Copy pre generated Jupyter configuration file
 # Enable write access to Jupyter Lab notebooks
-COPY jupyter_notebook_config.py /usr/local/airflow/.jupyter/jupyter_notebook_config.py
+COPY jupyter_notebook_config.py ${HOME}/.jupyter/jupyter_notebook_config.py
 RUN for dir in dags notebooks; \
        do \
-         echo "[INFO] Creating ${dir} volume directory"; \
+         echo "[INFO] Creating ${HOME}/${dir} volume directory"; \
          mkdir -p ${dir}; \
          chmod 777 ${dir}; \
-         echo 'Place here '${dir}' files' > /usr/local/airflow/${dir}/README.md; \
+         echo 'Place here '${dir}' files' > ${HOME}/${dir}/README.md; \
       done;
 
 ENTRYPOINT [ "tini" , "-g" , "--"]
@@ -270,4 +263,4 @@ RUN fix-permissions /etc/jupyter/
 # Switch back to user "airflow" to avoid accidental container runs as root
 USER $NB_UID
 
-WORKDIR /usr/local/airflow
+WORKDIR ${HOME}

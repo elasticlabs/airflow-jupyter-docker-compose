@@ -26,8 +26,9 @@ RUN update-alternatives --install /usr/bin/nano nano /bin/nano-tiny 10 \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
 
+	
 # Deploy extra packages
-RUN pip install 'apache-airflow[${AIRFLOW_EXTRAS}]'
+RUN pip install apache-airflow[${AIRFLOW_EXTRAS}]
 
 # Configure some required variables
 ENV SHELL=/bin/bash \

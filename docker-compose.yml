@@ -23,7 +23,6 @@ x-airflow-common:
     - airflow_plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-1000}:${AIRFLOW_GID:-1000}"
   depends_on:
-    airflow-proxy:
     redis:
       condition: service_healthy
     postgres:
@@ -76,7 +75,7 @@ services:
     command: scheduler
     restart: unless-stopped
 
-airflow-worker-1:
+  airflow-worker-1:
     <<: *airflow-common
     container_name: ${COMPOSE_PROJECT_NAME}_celery-worker-1
     command: celery worker
@@ -188,6 +187,7 @@ airflow-worker-1:
 volumes:
   postgres-dbdata:
   postgres-dbbackups:
+  pgadmin_data:
   airflow_dags:
   airflow_scripts:
   airflow_logs:

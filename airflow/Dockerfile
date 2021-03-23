@@ -1,6 +1,6 @@
 FROM apache/airflow:2.0.1-python3.7
 
-ARG AIRFLOW_EXTRAS="async,amazon,celery,docker,dask,elasticsearch,ftp,http,google,postgres,redis,sftp,ssh,statsd,virtualenv"
+ARG AIRFLOW_EXTRAS="async,amazon,celery,docker,dask,elasticsearch,ftp,http,postgres,redis,sftp,ssh,statsd,virtualenv"
 
 USER root
 RUN apt-get update \

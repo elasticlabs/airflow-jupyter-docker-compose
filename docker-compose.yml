@@ -156,7 +156,7 @@ services:
       - postgres-dbdata:/var/lib/postgresql/data
       - postgres-dbbackups:/pg_backups
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "airflow", "-d", "airflow_db"]
       interval: 5s
       retries: 5
     restart: always

@@ -12,6 +12,7 @@ x-airflow-common:
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_PASSWORD:-airflow}@postgres/airflow_db
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:${AIRFLOW_PASSWORD:-airflow}@postgres/airflow_db
+    # AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: '46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho='
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
@@ -165,7 +166,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: ${COMPOSE_PROJECT_NAME}_redis-broker
+    container_name: ${COMPOSE_PROJECT_NAME}_redis
     expose:
       - "6379"
     healthcheck:

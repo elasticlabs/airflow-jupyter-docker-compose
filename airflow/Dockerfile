@@ -45,3 +45,6 @@ USER airflow
 # Now we initialize the PostgreSQL backend
 # https://airflow.apache.org/docs/apache-airflow/stable/howto/set-up-database.html#database-uri
 RUN airflow db init
+
+# Finally, autorise airflow and flower to run behind a proxy
+RUN echo "enable_proxy_fix = True" >> airflow.cfg

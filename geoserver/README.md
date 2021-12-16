@@ -8,6 +8,7 @@ Dockerized GeoServer, built on top of [Docker's official tomcat image](https://h
 * Taken care of [JVM Options](http://docs.geoserver.org/latest/en/user/production/container.html).
 * Automatic installation of [Microsoft Core Fonts](http://www.microsoft.com/typography/fonts/web.aspx) for better labelling compatibility.
 
+
 ## Extensions deployment 
 Extensions automated deployemnt through the following `Dockerfile` variables : `STABLE_EXTENSIONS` and `COMMUNITY_EXTENSIONS`.
 You can customise the 2 lists using following references : 

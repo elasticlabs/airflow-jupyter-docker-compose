@@ -82,3 +82,8 @@ Please find below the included choice of librairies and associated reference URL
 | pynio | PyNIO is a multi-format data I/O package with a NetCDF-style interface. | http://www.pyngl.ucar.edu/Nio.shtml |
 | shapely | Manipulation and analysis of geometric objects in the Cartesian plane. | https://shapely.readthedocs.io/en/stable/project.html |
 | siphon | A collection of Python utilities for retrieving atmospheric and oceanic data from remote sources, focusing on being able to retrieve data from Unidata data technologies, such as the THREDDS data server. | https://unidata.github.io/siphon/latest/examples/index.html |
+
+
+### Infrastructure model
+
+![Infrastructure model](.infragenie/infrastructure_model.png)
